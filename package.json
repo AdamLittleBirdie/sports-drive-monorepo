@@ -6,5 +6,9 @@
     "install": "pnpm install",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
   }
 }
