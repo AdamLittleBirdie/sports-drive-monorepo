@@ -3,26 +3,25 @@ import Fastify from 'fastify';
 import { HealthResponse } from '@sports-drive/shared-types';
 
 describe('Health Endpoint', () => {
-  let app: ReturnType<typeof Fastify>;
+  let fastify = Fastify();
 
   beforeAll(async () => {
-    app = Fastify({ logger: false });
-    app.get<{ Reply: HealthResponse }>('/health', async () => {
+    fastify.get<{ Reply: HealthResponse }>('/health', async () => {
       return {
         status: 'ok',
         timestamp: new Date().toISOString(),
-        version: '0.1.0',
+        uptime: process.uptime(),
       };
     });
-    await app.ready();
+    await fastify.ready();
   });
 
   afterAll(async () => {
-    await app.close();
+    await fastify.close();
   });
 
   it('should return 200 with health status', async () => {
-    const response = await app.inject({
+    const response = await fastify.inject({
       method: 'GET',
       url: '/health',
     });
@@ -31,6 +30,6 @@ describe('Health Endpoint', () => {
     const body = JSON.parse(response.body) as HealthResponse;
     expect(body.status).toBe('ok');
     expect(body.timestamp).toBeDefined();
-    expect(body.version).toBe('0.1.0');
+    expect(body.uptime).toBeGreaterThan(0);
   });
 });

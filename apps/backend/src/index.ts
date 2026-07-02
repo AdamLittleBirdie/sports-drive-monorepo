@@ -1,26 +1,31 @@
 import Fastify from 'fastify';
+import { parseEnv } from './env.js';
 import { HealthResponse } from '@sports-drive/shared-types';
 
-const app = Fastify({
-  logger: false,
+const env = parseEnv();
+
+const fastify = Fastify({
+  logger: {
+    level: env.NODE_ENV === 'production' ? 'info' : 'debug',
+  },
 });
 
-app.get<{ Reply: HealthResponse }>('/health', async (request, reply) => {
+// Health check endpoint
+fastify.get<{ Reply: HealthResponse }>('/health', async (_request, _reply) => {
   return {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '0.1.0',
+    uptime: process.uptime(),
   };
 });
 
+// Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || process.env.BACKEND_PORT || '3000', 10);
-    const host = process.env.BACKEND_HOST || '0.0.0.0';
-    await app.listen({ port, host });
-    console.log(`Server running on http://${host}:${port}`);
+    await fastify.listen({ port: env.PORT, host: env.HOST });
+    console.log(`Server running at http://${env.HOST}:${env.PORT}`);
   } catch (err) {
-    app.log.error(err);
+    fastify.log.error(err);
     process.exit(1);
   }
 };
