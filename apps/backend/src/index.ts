@@ -15,8 +15,8 @@ app.get<{ Reply: HealthResponse }>('/health', async (request, reply) => {
 
 const start = async () => {
   try {
-    const port = parseInt(process.env.BACKEND_PORT || '3000', 10);
-    const host = process.env.BACKEND_HOST || 'localhost';
+    const port = parseInt(process.env.PORT || process.env.BACKEND_PORT || '3000', 10);
+    const host = process.env.BACKEND_HOST || '0.0.0.0';
     await app.listen({ port, host });
     console.log(`Server running on http://${host}:${port}`);
   } catch (err) {
