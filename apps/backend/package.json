@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc --build",
     "start": "node dist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sports-drive/shared-types": "workspace:*",
     "fastify": "^4.25.0"
   },
   "devDependencies": {
