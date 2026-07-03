@@ -1,0 +1,192 @@
+name: Figma Design Token Sync
+
+# ─── Triggers ─────────────────────────────────────────────────────────────────
+#
+# 1. repository_dispatch — fired by a webhook in In-CarSportsScoreTracker.
+#    Set up a GitHub Actions workflow in that repo that calls:
+#
+#      curl -X POST \
+#        -H "Authorization: token ${{ secrets.SPORTS_DRIVE_PAT }}" \
+#        -H "Accept: application/vnd.github.v3+json" \
+#        https://api.github.com/repos/AdamLittleBirdie/sports-drive-monorepo/dispatches \
+#        -d '{"event_type":"figma-token-update","client_payload":{"sha":"${{ github.sha }}"}}'
+#
+# 2. schedule — daily at 02:00 UTC as a safety net.
+# 3. workflow_dispatch — manual trigger for testing.
+
+on:
+  repository_dispatch:
+    types: [figma-token-update]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Branch / tag / SHA in In-CarSportsScoreTracker to sync from'
+        required: false
+        default: 'main'
+
+# ─── Permissions ──────────────────────────────────────────────────────────────
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+jobs:
+  sync-tokens:
+    name: Extract & sync design tokens
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. Check out sports-drive-monorepo (this repo)
+      - name: Checkout sports-drive-monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Check out the Figma Make source repo alongside
+      - name: Checkout In-CarSportsScoreTracker (Figma Make source)
+        uses: actions/checkout@v4
+        with:
+          repository: AdamLittleBirdie/In-CarSportsScoreTracker
+          ref: ${{ github.event.client_payload.sha || github.event.inputs.source_ref || 'main' }}
+          path: figma-source
+          # For private repos add: token: ${{ secrets.FIGMA_REPO_PAT }}
+
+      # 3. Set up Node + pnpm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 4. Run the token extractor
+      - name: Extract design tokens
+        run: pnpm tsx scripts/extract-figma-tokens.ts --source ./figma-source
+
+      # 5. Check whether anything actually changed
+      - name: Check for token changes
+        id: diff
+        run: |
+          git diff --quiet apps/frontend/src/styles/design-tokens.ts \
+                           apps/frontend/src/styles/design-tokens.css \
+            && echo "changed=false" >> $GITHUB_OUTPUT \
+            || echo "changed=true"  >> $GITHUB_OUTPUT
+
+      # 6. If nothing changed, skip the rest
+      - name: Skip — no token changes detected
+        if: steps.diff.outputs.changed == 'false'
+        run: echo "✅ Design tokens are already up to date. No PR needed."
+
+      # 7. Compute a branch name and PR metadata
+      - name: Prepare PR metadata
+        if: steps.diff.outputs.changed == 'true'
+        id: meta
+        run: |
+          DATE=$(date -u +%Y%m%d-%H%M%S)
+          BRANCH="figma-sync/tokens-${DATE}"
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+
+          # Summarise which token keys changed
+          DIFF_SUMMARY=$(git diff --unified=0 apps/frontend/src/styles/design-tokens.ts \
+            | grep '^[+-]' | grep -v '^[+-][+-][+-]' | head -30 || true)
+          echo "diff_summary<<EOF" >> $GITHUB_OUTPUT
+          echo "${DIFF_SUMMARY}"   >> $GITHUB_OUTPUT
+          echo "EOF"               >> $GITHUB_OUTPUT
+
+          # Source SHA (from dispatch payload or fallback)
+          SOURCE_SHA="${{ github.event.client_payload.sha }}"
+          if [ -z "$SOURCE_SHA" ]; then
+            SOURCE_SHA=$(git -C figma-source rev-parse --short HEAD 2>/dev/null || echo 'unknown')
+          fi
+          echo "source_sha=${SOURCE_SHA}" >> $GITHUB_OUTPUT
+
+      # 8. Commit the updated token files to a new branch
+      - name: Commit token changes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${{ steps.meta.outputs.branch }}"
+          git add apps/frontend/src/styles/design-tokens.ts \
+                  apps/frontend/src/styles/design-tokens.css
+          git commit -m "chore(design): sync tokens from Figma Make @ ${{ steps.meta.outputs.source_sha }}"
+          git push origin "${{ steps.meta.outputs.branch }}"
+
+      # 9. Open a PR
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch      = '${{ steps.meta.outputs.branch }}'
+            const sourceSha   = '${{ steps.meta.outputs.source_sha }}'
+            const diffSummary = `${{ steps.meta.outputs.diff_summary }}`
+
+            const body = [
+              '## 🎨 Figma Design Token Sync',
+              '',
+              `Automated PR generated by the \`figma-sync\` workflow.`,
+              `Source: [AdamLittleBirdie/In-CarSportsScoreTracker](https://github.com/AdamLittleBirdie/In-CarSportsScoreTracker) @ \`${sourceSha}\``,
+              '',
+              '### Changed files',
+              '- `apps/frontend/src/styles/design-tokens.ts`',
+              '- `apps/frontend/src/styles/design-tokens.css`',
+              '',
+              '### Token diff (first 30 lines)',
+              '```diff',
+              diffSummary,
+              '```',
+              '',
+              '### Checklist',
+              '- [ ] Colours match the Figma design file',
+              '- [ ] App renders correctly with updated tokens',
+              '- [ ] No unintended regressions in theme.css / globals.css',
+            ].join('\n')
+
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `chore(design): sync tokens from Figma Make @ ${sourceSha}`,
+              head:  branch,
+              base:  'main',
+              body,
+              draft: false,
+            })
+
+            core.notice(`PR created: ${pr.html_url}`)
+
+            // Label the PR for easy filtering
+            try {
+              await github.rest.issues.addLabels({
+                owner:  context.repo.owner,
+                repo:   context.repo.repo,
+                issue_number: pr.number,
+                labels: ['design-tokens', 'automated'],
+              })
+            } catch {
+              // Labels may not exist yet — non-fatal
+            }

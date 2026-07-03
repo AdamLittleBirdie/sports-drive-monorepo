@@ -6,6 +6,7 @@ import {
   CreditCard, LogOut, RefreshCw, ArrowLeft,
   Maximize2, LayoutTemplate, Grid2X2, Activity,
 } from 'lucide-react'
+import { colors } from '@/styles/design-tokens'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -397,8 +398,8 @@ function StatusBadge({ status }: { status: MatchStatus }) {
   if (status === 'live') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold font-display tracking-wider"
-        style={{ background: 'rgba(0,229,122,0.15)', color: '#00e57a', border: '1px solid rgba(0,229,122,0.3)' }}>
-        <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: '#00e57a' }} />
+        style={{ background: colors.greenGlow, color: colors.green, border: `1px solid ${colors.greenGlowBorder}` }}>
+        <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: colors.green }} />
         LIVE
       </span>
     )
@@ -406,7 +407,7 @@ function StatusBadge({ status }: { status: MatchStatus }) {
   if (status === 'upcoming') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold font-display tracking-wider"
-        style={{ background: 'rgba(245,166,35,0.12)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.25)' }}>
+        style={{ background: colors.amberGlowSubtle, color: colors.amber, border: `1px solid ${colors.amberGlowBorder}` }}>
         <Clock size={10} />
         SOON
       </span>
@@ -414,7 +415,7 @@ function StatusBadge({ status }: { status: MatchStatus }) {
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold font-display tracking-wider"
-      style={{ background: 'rgba(240,242,245,0.08)', color: '#8a9bb0', border: '1px solid rgba(240,242,245,0.12)' }}>
+      style={{ background: colors.neutralBadgeBg, color: colors.fgMuted, border: `1px solid ${colors.neutralBadgeBorder}` }}>
       <Check size={10} />
       FT
     </span>
@@ -429,14 +430,14 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       onClick={() => onChange(!checked)}
       className="relative inline-flex items-center flex-shrink-0 h-6 w-11 rounded-full transition-all duration-200"
       style={{
-        background: checked ? '#f5a623' : '#1e2a38',
-        border: `1px solid ${checked ? '#f5a623' : '#2a3a4d'}`,
+        background: checked ? colors.amber : colors.cockpitBorder,
+        border: `1px solid ${checked ? colors.amber : colors.cockpitMuted}`,
       }}
     >
       <span
         className="inline-block w-4 h-4 rounded-full transition-transform duration-200"
         style={{
-          background: checked ? '#070a0f' : '#4a5a6e',
+          background: checked ? colors.cockpit : colors.fgDim,
           transform: checked ? 'translateX(24px)' : 'translateX(4px)',
         }}
       />
@@ -460,9 +461,9 @@ function TeamSwatch({ color, altColor, size = 'md' }: { color: string; altColor?
 }
 
 function ModeIcon({ mode, active, onClick }: { mode: DisplayMode; active: boolean; onClick: () => void }) {
-  const color = active ? '#f5a623' : '#4a5a6e'
+  const color = active ? colors.amber : colors.fgDim
   return (
-    <button onClick={onClick} className="p-1.5 rounded transition-all" style={{ background: active ? 'rgba(245,166,35,0.12)' : 'transparent' }}>
+    <button onClick={onClick} className="p-1.5 rounded transition-all" style={{ background: active ? colors.amberGlowSubtle : 'transparent' }}>
       {mode === 'full' && <Maximize2 size={16} color={color} />}
       {mode === 'half' && <LayoutTemplate size={16} color={color} />}
       {mode === 'quarter' && <Grid2X2 size={16} color={color} />}
@@ -478,7 +479,7 @@ function BottomNav({ current, onNavigate }: { current: Screen; onNavigate: (s: S
     { screen: 'settings', icon: <Settings size={20} />, label: 'Settings' },
   ]
   return (
-    <nav className="flex items-center border-t" style={{ background: '#0d1117', borderColor: '#1e2a38', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav className="flex items-center border-t" style={{ background: colors.cockpitMid, borderColor: colors.cockpitBorder, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {items.map(item => {
         const active = current === item.screen
         return (
@@ -486,7 +487,7 @@ function BottomNav({ current, onNavigate }: { current: Screen; onNavigate: (s: S
             key={item.screen}
             onClick={() => onNavigate(item.screen)}
             className="flex-1 flex flex-col items-center gap-0.5 py-2.5 transition-all"
-            style={{ color: active ? '#f5a623' : '#4a5a6e' }}
+            style={{ color: active ? colors.amber : colors.fgDim }}
           >
             {item.icon}
             <span className="text-xs font-body" style={{ fontSize: 10 }}>{item.label}</span>
@@ -499,7 +500,7 @@ function BottomNav({ current, onNavigate }: { current: Screen; onNavigate: (s: S
 
 function MobileShell({ children, current, onNavigate }: { children: React.ReactNode; current: Screen; onNavigate: (s: Screen) => void }) {
   return (
-    <div className="flex flex-col h-full" style={{ background: '#070a0f' }}>
+    <div className="flex flex-col h-full" style={{ background: colors.cockpit }}>
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {children}
       </div>
@@ -517,28 +518,28 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
   }, [onDone])
 
   return (
-    <div className="flex flex-col items-center justify-center h-full" style={{ background: '#070a0f' }}>
+    <div className="flex flex-col items-center justify-center h-full" style={{ background: colors.cockpit }}>
       {/* Logo */}
       <div className="relative flex items-center justify-center mb-8">
         {/* Pulse rings */}
         <div className="absolute w-24 h-24 rounded-full animate-pulse-ring"
-          style={{ background: 'rgba(245,166,35,0.15)', animationDelay: '0s' }} />
+          style={{ background: colors.amberGlow, animationDelay: '0s' }} />
         <div className="absolute w-24 h-24 rounded-full animate-pulse-ring"
-          style={{ background: 'rgba(245,166,35,0.08)', animationDelay: '0.5s' }} />
+          style={{ background: colors.amberGlowRing, animationDelay: '0.5s' }} />
         {/* Icon circle */}
         <div className="relative w-20 h-20 rounded-full flex items-center justify-center"
-          style={{ background: 'rgba(245,166,35,0.15)', border: '2px solid rgba(245,166,35,0.4)' }}>
-          <Car size={36} color="#f5a623" />
+          style={{ background: colors.amberGlow, border: `2px solid ${colors.amberGlowRingBorder}` }}>
+          <Car size={36} color={colors.amber} />
         </div>
       </div>
 
       {/* App name */}
       <div className="text-center">
         <h1 className="font-display font-black tracking-widest" style={{ fontSize: 42, letterSpacing: '0.15em' }}>
-          <span style={{ color: '#f0f2f5' }}>SCORE</span>
-          <span style={{ color: '#f5a623' }}>DRIVE</span>
+          <span style={{ color: colors.fg }}>SCORE</span>
+          <span style={{ color: colors.amber }}>DRIVE</span>
         </h1>
-        <p className="font-body text-xs tracking-widest mt-1" style={{ color: '#4a5a6e', letterSpacing: '0.3em' }}>
+        <p className="font-body text-xs tracking-widest mt-1" style={{ color: colors.fgDim, letterSpacing: '0.3em' }}>
           IN-CAR SPORTS TRACKER
         </p>
       </div>
@@ -547,7 +548,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
       <div className="flex gap-1.5 mt-12">
         {[0, 1, 2].map(i => (
           <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse-dot"
-            style={{ background: '#f5a623', animationDelay: `${i * 0.2}s` }} />
+            style={{ background: colors.amber, animationDelay: `${i * 0.2}s` }} />
         ))}
       </div>
     </div>
@@ -563,24 +564,24 @@ function LiveTicker({ matches }: { matches: Match[] }) {
   const items = [...liveMatches, ...liveMatches] // duplicate for seamless loop
 
   return (
-    <div className="overflow-hidden border-b" style={{ borderColor: '#1e2a38', background: '#0d1117' }}>
+    <div className="overflow-hidden border-b" style={{ borderColor: colors.cockpitBorder, background: colors.cockpitMid }}>
       <div className="flex items-center">
-        <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 border-r" style={{ borderColor: '#1e2a38' }}>
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: '#00e57a' }} />
-          <span className="font-display font-bold text-xs tracking-wider" style={{ color: '#00e57a' }}>LIVE</span>
+        <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 border-r" style={{ borderColor: colors.cockpitBorder }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: colors.green }} />
+          <span className="font-display font-bold text-xs tracking-wider" style={{ color: colors.green }}>LIVE</span>
         </div>
         <div className="flex-1 overflow-hidden">
           <div className="flex animate-ticker whitespace-nowrap">
             {items.map((m, i) => (
-              <div key={`${m.id}-${i}`} className="inline-flex items-center gap-2 px-4 py-2 border-r" style={{ borderColor: '#1e2a38' }}>
+              <div key={`${m.id}-${i}`} className="inline-flex items-center gap-2 px-4 py-2 border-r" style={{ borderColor: colors.cockpitBorder }}>
                 <TeamSwatch color={m.home.color} altColor={m.home.altColor} size="sm" />
-                <span className="font-data text-xs" style={{ color: '#f0f2f5' }}>{m.home.abbr}</span>
-                <span className="font-data font-bold text-sm" style={{ color: '#f5a623' }}>{m.homeScore}</span>
-                <span className="font-data text-xs" style={{ color: '#4a5a6e' }}>–</span>
-                <span className="font-data font-bold text-sm" style={{ color: '#f0f2f5' }}>{m.awayScore}</span>
-                <span className="font-data text-xs" style={{ color: '#f0f2f5' }}>{m.away.abbr}</span>
+                <span className="font-data text-xs" style={{ color: colors.fg }}>{m.home.abbr}</span>
+                <span className="font-data font-bold text-sm" style={{ color: colors.amber }}>{m.homeScore}</span>
+                <span className="font-data text-xs" style={{ color: colors.fgDim }}>–</span>
+                <span className="font-data font-bold text-sm" style={{ color: colors.fg }}>{m.awayScore}</span>
+                <span className="font-data text-xs" style={{ color: colors.fg }}>{m.away.abbr}</span>
                 <TeamSwatch color={m.away.color} altColor={m.away.altColor} size="sm" />
-                <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>{m.time}</span>
+                <span className="font-body text-xs" style={{ color: colors.fgDim }}>{m.time}</span>
               </div>
             ))}
           </div>
@@ -599,31 +600,31 @@ function SportTile({ sport, matches, onClick }: { sport: string; matches: Match[
     <button
       onClick={onClick}
       className="flex flex-col p-3 rounded-md text-left transition-all active:scale-95"
-      style={{ background: '#0d1117', border: '1px solid #1e2a38' }}
+      style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span style={{ fontSize: 18 }}>{config.icon}</span>
-          <span className="font-display font-bold text-sm tracking-wide" style={{ color: '#f0f2f5' }}>{sport}</span>
+          <span className="font-display font-bold text-sm tracking-wide" style={{ color: colors.fg }}>{sport}</span>
         </div>
         {liveCount > 0 && (
           <span className="text-xs font-bold font-display px-1.5 py-0.5 rounded"
-            style={{ background: 'rgba(0,229,122,0.12)', color: '#00e57a', fontSize: 10 }}>
+            style={{ background: colors.greenGlowSubtle, color: colors.green, fontSize: 10 }}>
             {liveCount} LIVE
           </span>
         )}
       </div>
 
-      <div className="text-xs font-body mb-2" style={{ color: '#4a5a6e' }}>
+      <div className="text-xs font-body mb-2" style={{ color: colors.fgDim }}>
         {config.leagues.length} league{config.leagues.length > 1 ? 's' : ''}
       </div>
 
       {liveMatch && (
         <div className="flex items-center gap-1.5 mt-auto">
           <TeamSwatch color={liveMatch.home.color} altColor={liveMatch.home.altColor} size="sm" />
-          <span className="font-data text-xs font-bold" style={{ color: '#f5a623' }}>{liveMatch.homeScore}</span>
-          <span className="font-data text-xs" style={{ color: '#4a5a6e' }}>–</span>
-          <span className="font-data text-xs font-bold" style={{ color: '#f0f2f5' }}>{liveMatch.awayScore}</span>
+          <span className="font-data text-xs font-bold" style={{ color: colors.amber }}>{liveMatch.homeScore}</span>
+          <span className="font-data text-xs" style={{ color: colors.fgDim }}>–</span>
+          <span className="font-data text-xs font-bold" style={{ color: colors.fg }}>{liveMatch.awayScore}</span>
           <TeamSwatch color={liveMatch.away.color} altColor={liveMatch.away.altColor} size="sm" />
         </div>
       )}
@@ -641,18 +642,18 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
   return (
     <MobileShell current="home" onNavigate={onNavigate}>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1e2a38' }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: colors.cockpitBorder }}>
         <div>
           <h1 className="font-display font-black tracking-widest text-lg" style={{ letterSpacing: '0.12em' }}>
-            <span style={{ color: '#f0f2f5' }}>SCORE</span>
-            <span style={{ color: '#f5a623' }}>DRIVE</span>
+            <span style={{ color: colors.fg }}>SCORE</span>
+            <span style={{ color: colors.amber }}>DRIVE</span>
           </h1>
-          <p className="font-body text-xs" style={{ color: '#4a5a6e', fontSize: 10 }}>IN-CAR SPORTS TRACKER</p>
+          <p className="font-body text-xs" style={{ color: colors.fgDim, fontSize: 10 }}>IN-CAR SPORTS TRACKER</p>
         </div>
         <button
           onClick={onCarplay}
           className="flex items-center gap-2 px-3 py-2 rounded-full font-display font-bold text-sm tracking-wide transition-all active:scale-95"
-          style={{ background: '#f5a623', color: '#070a0f' }}
+          style={{ background: colors.amber, color: colors.cockpit }}
         >
           <Car size={16} />
           DRIVE MODE
@@ -665,10 +666,10 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
       {/* Sport tiles */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display font-bold tracking-wide text-sm" style={{ color: '#8a9bb0', letterSpacing: '0.1em' }}>
+          <h2 className="font-display font-bold tracking-wide text-sm" style={{ color: colors.fgMuted, letterSpacing: '0.1em' }}>
             YOUR SPORTS
           </h2>
-          <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>
+          <span className="font-body text-xs" style={{ color: colors.fgDim }}>
             {matches.filter(m => m.status === 'live').length} live now
           </span>
         </div>
@@ -686,24 +687,24 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
 
       {/* Upcoming section */}
       <div className="px-4 pb-4">
-        <h2 className="font-display font-bold tracking-wide text-sm mb-3" style={{ color: '#8a9bb0', letterSpacing: '0.1em' }}>
+        <h2 className="font-display font-bold tracking-wide text-sm mb-3" style={{ color: colors.fgMuted, letterSpacing: '0.1em' }}>
           UPCOMING
         </h2>
         <div className="flex flex-col gap-2">
           {matches.filter(m => m.status === 'upcoming').slice(0, 3).map(m => (
-            <div key={m.id} className="flex items-center gap-3 p-3 rounded-md" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
+            <div key={m.id} className="flex items-center gap-3 p-3 rounded-md" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
               <div className="flex items-center gap-1.5">
                 <TeamSwatch color={m.home.color} altColor={m.home.altColor} size="sm" />
-                <span className="font-display font-bold text-xs" style={{ color: '#f0f2f5' }}>{m.home.abbr}</span>
+                <span className="font-display font-bold text-xs" style={{ color: colors.fg }}>{m.home.abbr}</span>
               </div>
-              <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>vs</span>
+              <span className="font-body text-xs" style={{ color: colors.fgDim }}>vs</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-display font-bold text-xs" style={{ color: '#f0f2f5' }}>{m.away.abbr}</span>
+                <span className="font-display font-bold text-xs" style={{ color: colors.fg }}>{m.away.abbr}</span>
                 <TeamSwatch color={m.away.color} altColor={m.away.altColor} size="sm" />
               </div>
               <div className="ml-auto text-right">
-                <div className="font-body text-xs" style={{ color: '#f5a623' }}>{m.startTime}</div>
-                <div className="font-body text-xs" style={{ color: '#4a5a6e' }}>{m.league}</div>
+                <div className="font-body text-xs" style={{ color: colors.amber }}>{m.startTime}</div>
+                <div className="font-body text-xs" style={{ color: colors.fgDim }}>{m.league}</div>
               </div>
             </div>
           ))}
@@ -741,12 +742,12 @@ function SportsSelectionScreen({
   return (
     <MobileShell current="sports" onNavigate={onNavigate}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: '#1e2a38' }}>
-        <button onClick={onBack} className="p-1.5 rounded" style={{ color: '#8a9bb0' }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: colors.cockpitBorder }}>
+        <button onClick={onBack} className="p-1.5 rounded" style={{ color: colors.fgMuted }}>
           <ArrowLeft size={20} />
         </button>
-        <Trophy size={18} color="#f5a623" />
-        <h1 className="font-display font-bold tracking-wide" style={{ color: '#f0f2f5', letterSpacing: '0.08em' }}>
+        <Trophy size={18} color={colors.amber} />
+        <h1 className="font-display font-bold tracking-wide" style={{ color: colors.fg, letterSpacing: '0.08em' }}>
           SPORTS & LEAGUES
         </h1>
       </div>
@@ -760,28 +761,28 @@ function SportsSelectionScreen({
           const view = defaultView[sport] || 'stats'
 
           return (
-            <div key={sport} className="rounded-md overflow-hidden" style={{ border: '1px solid #1e2a38' }}>
+            <div key={sport} className="rounded-md overflow-hidden" style={{ border: `1px solid ${colors.cockpitBorder}` }}>
               {/* Sport header */}
               <button
                 onClick={() => setExpandedSport(isExpanded ? null : sport)}
                 className="w-full flex items-center justify-between px-4 py-3"
-                style={{ background: '#0d1117' }}
+                style={{ background: colors.cockpitMid }}
               >
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 18 }}>{config.icon}</span>
-                  <span className="font-display font-bold tracking-wide" style={{ color: '#f0f2f5' }}>{sport}</span>
-                  <span className="text-xs font-body" style={{ color: '#4a5a6e' }}>
+                  <span className="font-display font-bold tracking-wide" style={{ color: colors.fg }}>{sport}</span>
+                  <span className="text-xs font-body" style={{ color: colors.fgDim }}>
                     {config.leagues.length} leagues
                   </span>
                 </div>
-                {isExpanded ? <ChevronUp size={16} color="#4a5a6e" /> : <ChevronDown size={16} color="#4a5a6e" />}
+                {isExpanded ? <ChevronUp size={16} color={colors.fgDim} /> : <ChevronDown size={16} color={colors.fgDim} />}
               </button>
 
               {isExpanded && (
-                <div className="border-t" style={{ borderColor: '#1e2a38', background: '#070a0f' }}>
+                <div className="border-t" style={{ borderColor: colors.cockpitBorder, background: colors.cockpit }}>
                   {/* Leagues */}
                   <div className="px-4 py-3">
-                    <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: '#4a5a6e', letterSpacing: '0.12em' }}>
+                    <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: colors.fgDim, letterSpacing: '0.12em' }}>
                       LEAGUES
                     </p>
                     {config.leagues.map(league => {
@@ -797,9 +798,9 @@ function SportsSelectionScreen({
                                 onClick={() => setExpandedTeams(prev => ({ ...prev, [leagueKey]: !prev[leagueKey] }))}
                                 className="p-0.5"
                               >
-                                {teamsExpanded ? <ChevronUp size={14} color="#4a5a6e" /> : <ChevronDown size={14} color="#4a5a6e" />}
+                                {teamsExpanded ? <ChevronUp size={14} color={colors.fgDim} /> : <ChevronDown size={14} color={colors.fgDim} />}
                               </button>
-                              <span className="font-body text-sm" style={{ color: '#f0f2f5' }}>{league}</span>
+                              <span className="font-body text-sm" style={{ color: colors.fg }}>{league}</span>
                             </div>
                             <Toggle checked={enabled} onChange={() => onToggleLeague(leagueKey)} />
                           </div>
@@ -814,12 +815,12 @@ function SportsSelectionScreen({
                                     onClick={() => onToggleTeam(`${sport}:${league}`, team)}
                                     className="flex items-center gap-1.5 px-2 py-1.5 rounded text-left transition-all"
                                     style={{
-                                      background: teamSelected ? 'rgba(245,166,35,0.1)' : '#0d1117',
-                                      border: `1px solid ${teamSelected ? 'rgba(245,166,35,0.3)' : '#1e2a38'}`,
+                                      background: teamSelected ? colors.amberGlowBg : colors.cockpitMid,
+                                      border: `1px solid ${teamSelected ? colors.amberGlowBorderStrong : colors.cockpitBorder}`,
                                     }}
                                   >
                                     <TeamSwatch color={getTeamColor(team)} size="sm" />
-                                    <span className="font-body text-xs truncate" style={{ color: teamSelected ? '#f5a623' : '#8a9bb0' }}>
+                                    <span className="font-body text-xs truncate" style={{ color: teamSelected ? colors.amber : colors.fgMuted }}>
                                       {team}
                                     </span>
                                   </button>
@@ -833,14 +834,14 @@ function SportsSelectionScreen({
                   </div>
 
                   {/* Stat Views */}
-                  <div className="border-t px-4 py-3" style={{ borderColor: '#1e2a38' }}>
-                    <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: '#4a5a6e', letterSpacing: '0.12em' }}>
+                  <div className="border-t px-4 py-3" style={{ borderColor: colors.cockpitBorder }}>
+                    <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: colors.fgDim, letterSpacing: '0.12em' }}>
                       STAT VIEWS
                     </p>
 
                     {/* Sort by */}
                     <div className="mb-3">
-                      <p className="font-body text-xs mb-2" style={{ color: '#8a9bb0' }}>Sort by</p>
+                      <p className="font-body text-xs mb-2" style={{ color: colors.fgMuted }}>Sort by</p>
                       <div className="flex flex-wrap gap-1.5">
                         {STATS_OPTIONS[sport].slice(0, 5).map(stat => (
                           <button
@@ -848,9 +849,9 @@ function SportsSelectionScreen({
                             onClick={() => onSetSort(sport, stat)}
                             className="px-2 py-1 rounded text-xs font-body transition-all"
                             style={{
-                              background: sort === stat ? '#f5a623' : '#0d1117',
-                              color: sort === stat ? '#070a0f' : '#8a9bb0',
-                              border: `1px solid ${sort === stat ? '#f5a623' : '#1e2a38'}`,
+                              background: sort === stat ? colors.amber : colors.cockpitMid,
+                              color: sort === stat ? colors.cockpit : colors.fgMuted,
+                              border: `1px solid ${sort === stat ? colors.amber : colors.cockpitBorder}`,
                               fontWeight: sort === stat ? 700 : 400,
                             }}
                           >
@@ -863,8 +864,8 @@ function SportsSelectionScreen({
                     {/* Displayed stats */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="font-body text-xs" style={{ color: '#8a9bb0' }}>Displayed stats</p>
-                        <span className="font-data text-xs" style={{ color: '#4a5a6e' }}>{stats.length}/5</span>
+                        <p className="font-body text-xs" style={{ color: colors.fgMuted }}>Displayed stats</p>
+                        <span className="font-data text-xs" style={{ color: colors.fgDim }}>{stats.length}/5</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {STATS_OPTIONS[sport].map(stat => {
@@ -881,9 +882,9 @@ function SportsSelectionScreen({
                               }}
                               className="px-2 py-1 rounded text-xs font-body transition-all"
                               style={{
-                                background: active ? 'rgba(245,166,35,0.12)' : '#0d1117',
-                                color: active ? '#f5a623' : (!active && atMax) ? '#2a3a4d' : '#8a9bb0',
-                                border: `1px solid ${active ? 'rgba(245,166,35,0.3)' : '#1e2a38'}`,
+                                background: active ? colors.amberGlowSubtle : colors.cockpitMid,
+                                color: active ? colors.amber : (!active && atMax) ? colors.cockpitMuted : colors.fgMuted,
+                                border: `1px solid ${active ? colors.amberGlowBorderStrong : colors.cockpitBorder}`,
                                 opacity: (!active && atMax) || (active && atMin) ? 0.5 : 1,
                               }}
                             >
@@ -896,7 +897,7 @@ function SportsSelectionScreen({
 
                     {/* Default view */}
                     <div className="mb-3">
-                      <p className="font-body text-xs mb-2" style={{ color: '#8a9bb0' }}>Default drive view</p>
+                      <p className="font-body text-xs mb-2" style={{ color: colors.fgMuted }}>Default drive view</p>
                       <div className="flex gap-2">
                         {(['stats', 'scoring'] as const).map(v => (
                           <button
@@ -904,9 +905,9 @@ function SportsSelectionScreen({
                             onClick={() => onSetDefaultView(sport, v)}
                             className="flex-1 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
                             style={{
-                              background: view === v ? '#f5a623' : '#0d1117',
-                              color: view === v ? '#070a0f' : '#8a9bb0',
-                              border: `1px solid ${view === v ? '#f5a623' : '#1e2a38'}`,
+                              background: view === v ? colors.amber : colors.cockpitMid,
+                              color: view === v ? colors.cockpit : colors.fgMuted,
+                              border: `1px solid ${view === v ? colors.amber : colors.cockpitBorder}`,
                             }}
                           >
                             {v === 'stats' ? 'Stats Table' : 'Scoring'}
@@ -916,14 +917,14 @@ function SportsSelectionScreen({
                     </div>
 
                     {/* Drive preview */}
-                    <div className="rounded-md p-3" style={{ background: '#030507', border: '1px solid #1e2a38' }}>
-                      <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: '#4a5a6e', letterSpacing: '0.1em' }}>
+                    <div className="rounded-md p-3" style={{ background: colors.cockpitDeep, border: `1px solid ${colors.cockpitBorder}` }}>
+                      <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: colors.fgDim, letterSpacing: '0.1em' }}>
                         DRIVE PREVIEW
                       </p>
                       {MATCHES.filter(m => m.sport === sport && m.status === 'live').slice(0, 1).map(match => (
                         <div key={match.id}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-display font-bold text-xs" style={{ color: '#f0f2f5' }}>
+                            <span className="font-display font-bold text-xs" style={{ color: colors.fg }}>
                               {match.home.abbr} {match.homeScore} – {match.awayScore} {match.away.abbr}
                             </span>
                             <StatusBadge status="live" />
@@ -931,15 +932,15 @@ function SportsSelectionScreen({
                           <div className="flex flex-col gap-1">
                             {match.topPlayers.slice(0, 3).map((p, i) => (
                               <div key={p.name} className="flex items-center gap-2">
-                                <span className="font-data text-xs w-4" style={{ color: i === 0 ? '#f5a623' : '#4a5a6e' }}>
+                                <span className="font-data text-xs w-4" style={{ color: i === 0 ? colors.amber : colors.fgDim }}>
                                   {i + 1}
                                 </span>
                                 <TeamSwatch color={getTeamColor(p.team === match.home.abbr ? match.home.name : match.away.name)} size="sm" />
-                                <span className="font-body text-xs flex-1 truncate" style={{ color: i === 0 ? '#f5a623' : '#8a9bb0' }}>
+                                <span className="font-body text-xs flex-1 truncate" style={{ color: i === 0 ? colors.amber : colors.fgMuted }}>
                                   {p.name}
                                 </span>
                                 {stats.slice(0, 3).map(stat => (
-                                  <span key={stat} className="font-data text-xs" style={{ color: stat === sort ? '#f5a623' : '#4a5a6e' }}>
+                                  <span key={stat} className="font-data text-xs" style={{ color: stat === sort ? colors.amber : colors.fgDim }}>
                                     {p.stats[stat] ?? '—'}
                                   </span>
                                 ))}
@@ -949,7 +950,7 @@ function SportsSelectionScreen({
                         </div>
                       ))}
                       {MATCHES.filter(m => m.sport === sport && m.status === 'live').length === 0 && (
-                        <p className="font-body text-xs" style={{ color: '#4a5a6e' }}>No live matches</p>
+                        <p className="font-body text-xs" style={{ color: colors.fgDim }}>No live matches</p>
                       )}
                     </div>
                   </div>
@@ -965,14 +966,14 @@ function SportsSelectionScreen({
         <button
           onClick={onBack}
           className="flex-1 py-3 rounded-md font-display font-bold tracking-wide text-sm transition-all"
-          style={{ background: '#0d1117', color: '#8a9bb0', border: '1px solid #1e2a38' }}
+          style={{ background: colors.cockpitMid, color: colors.fgMuted, border: `1px solid ${colors.cockpitBorder}` }}
         >
           BACK TO HOME
         </button>
         <button
           onClick={onBack}
           className="flex-1 py-3 rounded-md font-display font-bold tracking-wide text-sm transition-all"
-          style={{ background: '#f5a623', color: '#070a0f' }}
+          style={{ background: colors.amber, color: colors.cockpit }}
         >
           SAVE PREFERENCES
         </button>
@@ -1003,23 +1004,23 @@ function StatsConfigScreen({
   return (
     <MobileShell current="stats" onNavigate={onNavigate}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: '#1e2a38' }}>
-        <SlidersHorizontal size={18} color="#f5a623" />
-        <h1 className="font-display font-bold tracking-wide" style={{ color: '#f0f2f5', letterSpacing: '0.08em' }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: colors.cockpitBorder }}>
+        <SlidersHorizontal size={18} color={colors.amber} />
+        <h1 className="font-display font-bold tracking-wide" style={{ color: colors.fg, letterSpacing: '0.08em' }}>
           STATS CONFIG
         </h1>
       </div>
 
       {/* Sport tabs */}
-      <div className="flex border-b" style={{ borderColor: '#1e2a38' }}>
+      <div className="flex border-b" style={{ borderColor: colors.cockpitBorder }}>
         {sports.map(sport => (
           <button
             key={sport}
             onClick={() => setActiveSport(sport)}
             className="flex-1 py-2.5 font-display font-bold text-xs tracking-wide transition-all"
             style={{
-              color: activeSport === sport ? '#f5a623' : '#4a5a6e',
-              borderBottom: activeSport === sport ? '2px solid #f5a623' : '2px solid transparent',
+              color: activeSport === sport ? colors.amber : colors.fgDim,
+              borderBottom: activeSport === sport ? `2px solid ${colors.amber}` : '2px solid transparent',
               background: 'transparent',
             }}
           >
@@ -1030,8 +1031,8 @@ function StatsConfigScreen({
 
       <div className="p-4 flex flex-col gap-4">
         {/* Sort order */}
-        <div className="rounded-md p-4" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
-          <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: '#4a5a6e', letterSpacing: '0.12em' }}>
+        <div className="rounded-md p-4" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
+          <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: colors.fgDim, letterSpacing: '0.12em' }}>
             SORT ORDER
           </p>
           <div className="flex flex-wrap gap-2">
@@ -1041,9 +1042,9 @@ function StatsConfigScreen({
                 onClick={() => onSetSort(activeSport, stat)}
                 className="px-3 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
                 style={{
-                  background: sort === stat ? '#f5a623' : '#111820',
-                  color: sort === stat ? '#070a0f' : '#8a9bb0',
-                  border: `1px solid ${sort === stat ? '#f5a623' : '#1e2a38'}`,
+                  background: sort === stat ? colors.amber : colors.cockpitSurface,
+                  color: sort === stat ? colors.cockpit : colors.fgMuted,
+                  border: `1px solid ${sort === stat ? colors.amber : colors.cockpitBorder}`,
                 }}
               >
                 {stat}
@@ -1053,14 +1054,14 @@ function StatsConfigScreen({
         </div>
 
         {/* Displayed stats */}
-        <div className="rounded-md p-4" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
+        <div className="rounded-md p-4" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="font-display font-bold text-xs tracking-wider" style={{ color: '#4a5a6e', letterSpacing: '0.12em' }}>
+            <p className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgDim, letterSpacing: '0.12em' }}>
               DISPLAYED STATS
             </p>
-            <span className="font-data text-xs" style={{ color: '#4a5a6e' }}>
+            <span className="font-data text-xs" style={{ color: colors.fgDim }}>
               {stats.length} / 5 &nbsp;
-              <span style={{ color: '#2a3a4d' }}>min 3</span>
+              <span style={{ color: colors.cockpitMuted }}>min 3</span>
             </span>
           </div>
           <div className="flex flex-col gap-2">
@@ -1070,7 +1071,7 @@ function StatsConfigScreen({
               const atMin = stats.length <= 3
               return (
                 <div key={stat} className="flex items-center justify-between py-1">
-                  <span className="font-body text-sm" style={{ color: active ? '#f0f2f5' : '#4a5a6e' }}>{stat}</span>
+                  <span className="font-body text-sm" style={{ color: active ? colors.fg : colors.fgDim }}>{stat}</span>
                   <Toggle
                     checked={active}
                     onChange={() => {
@@ -1086,11 +1087,11 @@ function StatsConfigScreen({
         </div>
 
         {/* In-car preview */}
-        <div className="rounded-md overflow-hidden" style={{ border: '1px solid #1e2a38' }}>
-          <div className="px-3 py-2 flex items-center justify-between" style={{ background: '#030507' }}>
+        <div className="rounded-md overflow-hidden" style={{ border: `1px solid ${colors.cockpitBorder}` }}>
+          <div className="px-3 py-2 flex items-center justify-between" style={{ background: colors.cockpitDeep }}>
             <div className="flex items-center gap-2">
-              <Car size={14} color="#f5a623" />
-              <span className="font-display font-bold text-xs tracking-wider" style={{ color: '#f5a623', letterSpacing: '0.1em' }}>
+              <Car size={14} color={colors.amber} />
+              <span className="font-display font-bold text-xs tracking-wider" style={{ color: colors.amber, letterSpacing: '0.1em' }}>
                 IN-CAR PREVIEW
               </span>
             </div>
@@ -1098,20 +1099,20 @@ function StatsConfigScreen({
           </div>
 
           {liveMatch ? (
-            <div className="p-3" style={{ background: '#030507' }}>
+            <div className="p-3" style={{ background: colors.cockpitDeep }}>
               {/* Score */}
-              <div className="flex items-center justify-between mb-3 pb-3 border-b" style={{ borderColor: '#1e2a38' }}>
+              <div className="flex items-center justify-between mb-3 pb-3 border-b" style={{ borderColor: colors.cockpitBorder }}>
                 <div className="flex items-center gap-2">
                   <TeamSwatch color={liveMatch.home.color} altColor={liveMatch.home.altColor} size="sm" />
-                  <span className="font-display font-bold text-sm" style={{ color: '#f0f2f5' }}>{liveMatch.home.abbr}</span>
+                  <span className="font-display font-bold text-sm" style={{ color: colors.fg }}>{liveMatch.home.abbr}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-data font-bold text-xl" style={{ color: '#f5a623' }}>{liveMatch.homeScore}</span>
-                  <span className="font-data text-sm" style={{ color: '#4a5a6e' }}>–</span>
-                  <span className="font-data font-bold text-xl" style={{ color: '#f0f2f5' }}>{liveMatch.awayScore}</span>
+                  <span className="font-data font-bold text-xl" style={{ color: colors.amber }}>{liveMatch.homeScore}</span>
+                  <span className="font-data text-sm" style={{ color: colors.fgDim }}>–</span>
+                  <span className="font-data font-bold text-xl" style={{ color: colors.fg }}>{liveMatch.awayScore}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-display font-bold text-sm" style={{ color: '#f0f2f5' }}>{liveMatch.away.abbr}</span>
+                  <span className="font-display font-bold text-sm" style={{ color: colors.fg }}>{liveMatch.away.abbr}</span>
                   <TeamSwatch color={liveMatch.away.color} altColor={liveMatch.away.altColor} size="sm" />
                 </div>
               </div>
@@ -1119,11 +1120,11 @@ function StatsConfigScreen({
               {/* Top performers */}
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="w-5 text-xs font-data" style={{ color: '#4a5a6e' }}>#</span>
-                  <span className="flex-1 text-xs font-body" style={{ color: '#4a5a6e' }}>Player</span>
+                  <span className="w-5 text-xs font-data" style={{ color: colors.fgDim }}>#</span>
+                  <span className="flex-1 text-xs font-body" style={{ color: colors.fgDim }}>Player</span>
                   {stats.slice(0, 3).map(s => (
                     <span key={s} className="w-10 text-right text-xs font-data"
-                      style={{ color: s === sort ? '#f5a623' : '#4a5a6e' }}>
+                      style={{ color: s === sort ? colors.amber : colors.fgDim }}>
                       {s.slice(0, 4)}
                     </span>
                   ))}
@@ -1133,16 +1134,16 @@ function StatsConfigScreen({
                   .slice(0, 4)
                   .map((p, i) => (
                     <div key={p.name} className="flex items-center gap-2 py-1">
-                      <span className="w-5 text-xs font-data" style={{ color: i === 0 ? '#f5a623' : '#4a5a6e' }}>
+                      <span className="w-5 text-xs font-data" style={{ color: i === 0 ? colors.amber : colors.fgDim }}>
                         {i + 1}
                       </span>
                       <TeamSwatch color={getTeamColor(p.team === liveMatch.home.abbr ? liveMatch.home.name : liveMatch.away.name)} size="sm" />
-                      <span className="flex-1 text-xs font-body truncate" style={{ color: i === 0 ? '#f5a623' : '#8a9bb0' }}>
+                      <span className="flex-1 text-xs font-body truncate" style={{ color: i === 0 ? colors.amber : colors.fgMuted }}>
                         {p.name}
                       </span>
                       {stats.slice(0, 3).map(s => (
                         <span key={s} className="w-10 text-right text-xs font-data"
-                          style={{ color: s === sort ? (i === 0 ? '#f5a623' : '#f0f2f5') : '#4a5a6e' }}>
+                          style={{ color: s === sort ? (i === 0 ? colors.amber : colors.fg) : colors.fgDim }}>
                           {p.stats[s] ?? '—'}
                         </span>
                       ))}
@@ -1151,8 +1152,8 @@ function StatsConfigScreen({
               </div>
             </div>
           ) : (
-            <div className="p-4 text-center" style={{ background: '#030507' }}>
-              <p className="font-body text-sm" style={{ color: '#4a5a6e' }}>No live {activeSport} matches</p>
+            <div className="p-4 text-center" style={{ background: colors.cockpitDeep }}>
+              <p className="font-body text-sm" style={{ color: colors.fgDim }}>No live {activeSport} matches</p>
             </div>
           )}
         </div>
@@ -1179,19 +1180,19 @@ function SettingsScreen({
   return (
     <MobileShell current="settings" onNavigate={onNavigate}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: '#1e2a38' }}>
-        <Settings size={18} color="#f5a623" />
-        <h1 className="font-display font-bold tracking-wide" style={{ color: '#f0f2f5', letterSpacing: '0.08em' }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: colors.cockpitBorder }}>
+        <Settings size={18} color={colors.amber} />
+        <h1 className="font-display font-bold tracking-wide" style={{ color: colors.fg, letterSpacing: '0.08em' }}>
           SETTINGS
         </h1>
       </div>
 
       <div className="p-4 flex flex-col gap-4">
         {/* Data Refresh */}
-        <div className="rounded-md p-4" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
+        <div className="rounded-md p-4" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
           <div className="flex items-center gap-2 mb-3">
-            <RefreshCw size={14} color="#f5a623" />
-            <p className="font-display font-bold text-xs tracking-wider" style={{ color: '#8a9bb0', letterSpacing: '0.12em' }}>
+            <RefreshCw size={14} color={colors.amber} />
+            <p className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgMuted, letterSpacing: '0.12em' }}>
               DATA REFRESH
             </p>
           </div>
@@ -1202,9 +1203,9 @@ function SettingsScreen({
                 onClick={() => onSetRefresh(v)}
                 className="flex-1 py-2 rounded font-display font-bold text-sm tracking-wide transition-all"
                 style={{
-                  background: refreshInterval === v ? '#f5a623' : '#111820',
-                  color: refreshInterval === v ? '#070a0f' : '#8a9bb0',
-                  border: `1px solid ${refreshInterval === v ? '#f5a623' : '#1e2a38'}`,
+                  background: refreshInterval === v ? colors.amber : colors.cockpitSurface,
+                  color: refreshInterval === v ? colors.cockpit : colors.fgMuted,
+                  border: `1px solid ${refreshInterval === v ? colors.amber : colors.cockpitBorder}`,
                 }}
               >
                 {v}s
@@ -1214,10 +1215,10 @@ function SettingsScreen({
         </div>
 
         {/* Notifications */}
-        <div className="rounded-md p-4" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
+        <div className="rounded-md p-4" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
           <div className="flex items-center gap-2 mb-3">
-            <Bell size={14} color="#f5a623" />
-            <p className="font-display font-bold text-xs tracking-wider" style={{ color: '#8a9bb0', letterSpacing: '0.12em' }}>
+            <Bell size={14} color={colors.amber} />
+            <p className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgMuted, letterSpacing: '0.12em' }}>
               NOTIFICATIONS
             </p>
           </div>
@@ -1228,7 +1229,7 @@ function SettingsScreen({
               { key: 'finalScore', label: 'Final Score Summary' },
             ].map(item => (
               <div key={item.key} className="flex items-center justify-between">
-                <span className="font-body text-sm" style={{ color: '#f0f2f5' }}>{item.label}</span>
+                <span className="font-body text-sm" style={{ color: colors.fg }}>{item.label}</span>
                 <Toggle
                   checked={notifications[item.key as keyof typeof notifications]}
                   onChange={v => setNotifications(prev => ({ ...prev, [item.key]: v }))}
@@ -1239,31 +1240,31 @@ function SettingsScreen({
         </div>
 
         {/* Account */}
-        <div className="rounded-md p-4" style={{ background: '#0d1117', border: '1px solid #1e2a38' }}>
+        <div className="rounded-md p-4" style={{ background: colors.cockpitMid, border: `1px solid ${colors.cockpitBorder}` }}>
           <div className="flex items-center gap-2 mb-3">
-            <User size={14} color="#f5a623" />
-            <p className="font-display font-bold text-xs tracking-wider" style={{ color: '#8a9bb0', letterSpacing: '0.12em' }}>
+            <User size={14} color={colors.amber} />
+            <p className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgMuted, letterSpacing: '0.12em' }}>
               ACCOUNT
             </p>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between py-2.5 border-b" style={{ borderColor: '#1e2a38' }}>
+            <div className="flex items-center justify-between py-2.5 border-b" style={{ borderColor: colors.cockpitBorder }}>
               <div className="flex items-center gap-2">
-                <User size={16} color="#4a5a6e" />
-                <span className="font-body text-sm" style={{ color: '#f0f2f5' }}>Profile</span>
+                <User size={16} color={colors.fgDim} />
+                <span className="font-body text-sm" style={{ color: colors.fg }}>Profile</span>
               </div>
-              <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>user@example.com</span>
+              <span className="font-body text-xs" style={{ color: colors.fgDim }}>user@example.com</span>
             </div>
-            <button className="flex items-center justify-between py-2.5 border-b w-full" style={{ borderColor: '#1e2a38' }}>
+            <button className="flex items-center justify-between py-2.5 border-b w-full" style={{ borderColor: colors.cockpitBorder }}>
               <div className="flex items-center gap-2">
-                <CreditCard size={16} color="#f5a623" />
-                <span className="font-body text-sm" style={{ color: '#f5a623' }}>Go Ad-Free</span>
+                <CreditCard size={16} color={colors.amber} />
+                <span className="font-body text-sm" style={{ color: colors.amber }}>Go Ad-Free</span>
               </div>
-              <span className="font-data text-xs font-bold" style={{ color: '#f5a623' }}>$4.99/mo</span>
+              <span className="font-data text-xs font-bold" style={{ color: colors.amber }}>$4.99/mo</span>
             </button>
             <button className="flex items-center gap-2 py-2.5 w-full">
-              <LogOut size={16} color="#ff4d4d" />
-              <span className="font-body text-sm" style={{ color: '#ff4d4d' }}>Sign Out</span>
+              <LogOut size={16} color={colors.redScore} />
+              <span className="font-body text-sm" style={{ color: colors.redScore }}>Sign Out</span>
             </button>
           </div>
         </div>
@@ -1271,8 +1272,8 @@ function SettingsScreen({
 
       {/* Footer */}
       <div className="px-4 pb-6 text-center">
-        <p className="font-body text-xs" style={{ color: '#2a3a4d' }}>ScoreDrive v1.0.0</p>
-        <p className="font-body text-xs mt-0.5" style={{ color: '#2a3a4d' }}>Built for the road. Stay safe.</p>
+        <p className="font-body text-xs" style={{ color: colors.cockpitMuted }}>ScoreDrive v1.0.0</p>
+        <p className="font-body text-xs mt-0.5" style={{ color: colors.cockpitMuted }}>Built for the road. Stay safe.</p>
       </div>
     </MobileShell>
   )
@@ -1301,14 +1302,14 @@ function WormChart({ match }: { match: Match }) {
         {/* Grid lines */}
         {[0.25, 0.5, 0.75].map(f => (
           <line key={f} x1={0} y1={getY(maxScore * f)} x2={width} y2={getY(maxScore * f)}
-            stroke="#1e2a38" strokeWidth={0.5} strokeDasharray="4,4" />
+            stroke={colors.cockpitBorder} strokeWidth={0.5} strokeDasharray="4,4" />
         ))}
 
         {/* Away line */}
-        <path d={awayPath} fill="none" stroke="#8a9bb0" strokeWidth={1.5} strokeLinejoin="round" />
+        <path d={awayPath} fill="none" stroke={colors.fgMuted} strokeWidth={1.5} strokeLinejoin="round" />
 
         {/* Home line (amber) */}
-        <path d={homePath} fill="none" stroke="#f5a623" strokeWidth={2} strokeLinejoin="round" />
+        <path d={homePath} fill="none" stroke={colors.amber} strokeWidth={2} strokeLinejoin="round" />
 
         {/* Wicket markers for cricket */}
         {match.sport === 'Cricket' && prog.wickets && prog.wickets.map((w, i) => {
@@ -1317,7 +1318,7 @@ function WormChart({ match }: { match: Match }) {
           if (w > prevW) {
             return (
               <circle key={i} cx={getX(i)} cy={getY(prog.homeScores[i])}
-                r={4} fill="#ff4d4d" stroke="#030507" strokeWidth={1} />
+                r={4} fill={colors.redScore} stroke={colors.cockpitDeep} strokeWidth={1} />
             )
           }
           return null
@@ -1327,9 +1328,9 @@ function WormChart({ match }: { match: Match }) {
         {prog.periods.map((p, i) => (
           <g key={p}>
             <line x1={getX(i)} y1={height - 12} x2={getX(i)} y2={height}
-              stroke="#2a3a4d" strokeWidth={1} />
+              stroke={colors.cockpitMuted} strokeWidth={1} />
             <text x={getX(i)} y={height} textAnchor="middle"
-              fill="#4a5a6e" fontSize={8} fontFamily="DM Mono">
+              fill={colors.fgDim} fontSize={8} fontFamily="DM Mono">
               {p}
             </text>
           </g>
@@ -1339,17 +1340,17 @@ function WormChart({ match }: { match: Match }) {
       {/* Legend */}
       <div className="flex items-center gap-4 mt-1">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5" style={{ background: '#f5a623' }} />
-          <span className="font-data text-xs" style={{ color: '#f5a623' }}>{match.home.abbr}</span>
+          <div className="w-4 h-0.5" style={{ background: colors.amber }} />
+          <span className="font-data text-xs" style={{ color: colors.amber }}>{match.home.abbr}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5" style={{ background: '#8a9bb0' }} />
-          <span className="font-data text-xs" style={{ color: '#8a9bb0' }}>{match.away.abbr}</span>
+          <div className="w-4 h-0.5" style={{ background: colors.fgMuted }} />
+          <span className="font-data text-xs" style={{ color: colors.fgMuted }}>{match.away.abbr}</span>
         </div>
         {match.sport === 'Cricket' && (
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ background: '#ff4d4d' }} />
-            <span className="font-data text-xs" style={{ color: '#ff4d4d' }}>Wicket</span>
+            <div className="w-2 h-2 rounded-full" style={{ background: colors.redScore }} />
+            <span className="font-data text-xs" style={{ color: colors.redScore }}>Wicket</span>
           </div>
         )}
       </div>
@@ -1358,22 +1359,22 @@ function WormChart({ match }: { match: Match }) {
 }
 
 function CricketBalls({ balls }: { balls: CricketBall[] }) {
-  const colors: Record<string, { bg: string; text: string }> = {
-    'dot': { bg: '#1e2a38', text: '#4a5a6e' },
-    '1': { bg: '#111820', text: '#8a9bb0' },
-    '2': { bg: '#111820', text: '#8a9bb0' },
-    '3': { bg: '#111820', text: '#f0f2f5' },
-    '4': { bg: 'rgba(245,166,35,0.2)', text: '#f5a623' },
-    '6': { bg: 'rgba(0,229,122,0.2)', text: '#00e57a' },
-    'W': { bg: 'rgba(255,77,77,0.2)', text: '#ff4d4d' },
-    'wd': { bg: '#111820', text: '#8a9bb0' },
-    'nb': { bg: '#111820', text: '#8a9bb0' },
+  const ballColors: Record<string, { bg: string; text: string }> = {
+    'dot': { bg: colors.cockpitBorder,          text: colors.fgDim },
+    '1':   { bg: colors.cockpitSurface,          text: colors.fgMuted },
+    '2':   { bg: colors.cockpitSurface,          text: colors.fgMuted },
+    '3':   { bg: colors.cockpitSurface,          text: colors.fg },
+    '4':   { bg: colors.amberGlowBgMedium,         text: colors.amber },
+    '6':   { bg: colors.greenGlowSubtle,          text: colors.green },
+    'W':   { bg: colors.redGlow,                  text: colors.redScore },
+    'wd':  { bg: colors.cockpitSurface,          text: colors.fgMuted },
+    'nb':  { bg: colors.cockpitSurface,          text: colors.fgMuted },
   }
 
   return (
     <div className="flex items-center gap-2">
       {balls.map((ball, i) => {
-        const c = colors[ball.outcome] || colors['dot']
+        const c = ballColors[ball.outcome] || ballColors['dot']
         return (
           <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center font-data font-bold text-xs"
             style={{ background: c.bg, color: c.text, border: `1px solid ${c.text}30` }}>
@@ -1400,13 +1401,13 @@ function CarplayStatsView({ match, enabledStats, sortStats }: {
   return (
     <div className="flex flex-col h-full">
       {/* Header row */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: '#1e2a38' }}>
-        <span className="w-6 font-data text-xs" style={{ color: '#4a5a6e' }}>#</span>
+      <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: colors.cockpitBorder }}>
+        <span className="w-6 font-data text-xs" style={{ color: colors.fgDim }}>#</span>
         <div className="w-5" />
-        <span className="flex-1 font-body text-xs" style={{ color: '#4a5a6e' }}>Player</span>
+        <span className="flex-1 font-body text-xs" style={{ color: colors.fgDim }}>Player</span>
         {stats.map(s => (
           <span key={s} className="w-12 text-right font-data text-xs font-bold"
-            style={{ color: s === sort ? '#f5a623' : '#4a5a6e' }}>
+            style={{ color: s === sort ? colors.amber : colors.fgDim }}>
             {s.slice(0, 5)}
           </span>
         ))}
@@ -1419,12 +1420,12 @@ function CarplayStatsView({ match, enabledStats, sortStats }: {
             key={player.name}
             className="flex items-center gap-2 px-4 py-2.5 border-b"
             style={{
-              borderColor: '#0d1117',
-              background: i === 0 ? 'rgba(245,166,35,0.05)' : 'transparent',
+              borderColor: colors.cockpitMid,
+              background: i === 0 ? colors.amberGlowBgFaint : 'transparent',
             }}
           >
             <span className="w-6 font-data text-sm font-bold"
-              style={{ color: i === 0 ? '#f5a623' : '#4a5a6e' }}>
+              style={{ color: i === 0 ? colors.amber : colors.fgDim }}>
               {i + 1}
             </span>
             <TeamSwatch
@@ -1432,12 +1433,12 @@ function CarplayStatsView({ match, enabledStats, sortStats }: {
               size="sm"
             />
             <span className="flex-1 font-body text-sm truncate"
-              style={{ color: i === 0 ? '#f5a623' : '#f0f2f5' }}>
+              style={{ color: i === 0 ? colors.amber : colors.fg }}>
               {player.name}
             </span>
             {stats.map(s => (
               <span key={s} className="w-12 text-right font-data text-sm"
-                style={{ color: s === sort ? (i === 0 ? '#f5a623' : '#f0f2f5') : '#8a9bb0' }}>
+                style={{ color: s === sort ? (i === 0 ? colors.amber : colors.fg) : colors.fgMuted }}>
                 {player.stats[s] ?? '—'}
               </span>
             ))}
@@ -1453,7 +1454,7 @@ function CarplayScoringView({ match }: { match: Match }) {
     <div className="flex flex-col h-full px-4 py-3 gap-4">
       {/* Chart */}
       <div className="flex-1">
-        <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: '#4a5a6e', letterSpacing: '0.1em' }}>
+        <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: colors.fgDim, letterSpacing: '0.1em' }}>
           {match.sport === 'Cricket' ? 'WORM CHART' : 'SCORE PROGRESSION'}
         </p>
         <WormChart match={match} />
@@ -1461,7 +1462,7 @@ function CarplayScoringView({ match }: { match: Match }) {
 
       {/* Recent events */}
       <div>
-        <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: '#4a5a6e', letterSpacing: '0.1em' }}>
+        <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: colors.fgDim, letterSpacing: '0.1em' }}>
           {match.sport === 'Cricket' ? 'LAST 6 BALLS' : 'RECENT EVENTS'}
         </p>
 
@@ -1472,9 +1473,9 @@ function CarplayScoringView({ match }: { match: Match }) {
               <div className="mt-3 flex gap-4">
                 {match.batters.map(b => (
                   <div key={b.name} className="flex items-center gap-2">
-                    <span className="font-body text-xs" style={{ color: '#8a9bb0' }}>{b.name}</span>
-                    <span className="font-data text-sm font-bold" style={{ color: '#f5a623' }}>{b.runs}</span>
-                    <span className="font-data text-xs" style={{ color: '#4a5a6e' }}>({b.balls})</span>
+                    <span className="font-body text-xs" style={{ color: colors.fgMuted }}>{b.name}</span>
+                    <span className="font-data text-sm font-bold" style={{ color: colors.amber }}>{b.runs}</span>
+                    <span className="font-data text-xs" style={{ color: colors.fgDim }}>({b.balls})</span>
                   </div>
                 ))}
               </div>
@@ -1486,14 +1487,14 @@ function CarplayScoringView({ match }: { match: Match }) {
           <div className="flex flex-col gap-1.5">
             {match.footballEvents.slice(-4).map((ev, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="font-data text-xs w-8" style={{ color: '#4a5a6e' }}>{ev.time}'</span>
+                <span className="font-data text-xs w-8" style={{ color: colors.fgDim }}>{ev.time}'</span>
                 <TeamSwatch
                   color={ev.team === 'home' ? match.home.color : match.away.color}
                   size="sm"
                 />
-                <span className="font-body text-xs" style={{ color: '#f0f2f5' }}>{ev.player}</span>
+                <span className="font-body text-xs" style={{ color: colors.fg }}>{ev.player}</span>
                 <span className="ml-auto font-data text-xs px-1.5 py-0.5 rounded"
-                  style={{ background: 'rgba(0,229,122,0.12)', color: '#00e57a' }}>
+                  style={{ background: colors.greenGlowSubtle, color: colors.green }}>
                   {ev.type === 'goal' ? '⚽ GOAL' : ev.type === 'penalty' ? '🎯 PEN' : '↩ OG'}
                 </span>
               </div>
@@ -1519,7 +1520,7 @@ function UpcomingMatchCard({ match }: { match: Match }) {
     <div className="flex flex-col items-center justify-center h-full px-6 gap-6">
       {/* League badge */}
       <div className="px-3 py-1 rounded-full font-display font-bold text-xs tracking-wider"
-        style={{ background: 'rgba(245,166,35,0.12)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.25)' }}>
+        style={{ background: colors.amberGlowSubtle, color: colors.amber, border: `1px solid ${colors.amberGlowBorder}` }}>
         {match.league}
       </div>
 
@@ -1527,34 +1528,34 @@ function UpcomingMatchCard({ match }: { match: Match }) {
       <div className="flex items-center gap-6 w-full">
         <div className="flex-1 flex flex-col items-center gap-2">
           <TeamSwatch color={match.home.color} altColor={match.home.altColor} size="lg" />
-          <span className="font-display font-black text-2xl tracking-wide" style={{ color: '#f0f2f5' }}>
+          <span className="font-display font-black text-2xl tracking-wide" style={{ color: colors.fg }}>
             {match.home.abbr}
           </span>
-          <span className="font-body text-xs text-center" style={{ color: '#8a9bb0' }}>{match.home.name}</span>
+          <span className="font-body text-xs text-center" style={{ color: colors.fgMuted }}>{match.home.name}</span>
         </div>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="font-display font-bold text-lg" style={{ color: '#4a5a6e' }}>VS</span>
+          <span className="font-display font-bold text-lg" style={{ color: colors.fgDim }}>VS</span>
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-2">
           <TeamSwatch color={match.away.color} altColor={match.away.altColor} size="lg" />
-          <span className="font-display font-black text-2xl tracking-wide" style={{ color: '#f0f2f5' }}>
+          <span className="font-display font-black text-2xl tracking-wide" style={{ color: colors.fg }}>
             {match.away.abbr}
           </span>
-          <span className="font-body text-xs text-center" style={{ color: '#8a9bb0' }}>{match.away.name}</span>
+          <span className="font-body text-xs text-center" style={{ color: colors.fgMuted }}>{match.away.name}</span>
         </div>
       </div>
 
       {/* Countdown */}
       <div className="flex flex-col items-center gap-1">
-        <span className="font-display font-bold text-xs tracking-wider" style={{ color: '#4a5a6e', letterSpacing: '0.12em' }}>
+        <span className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgDim, letterSpacing: '0.12em' }}>
           STARTS IN
         </span>
-        <span className="font-data font-bold text-3xl animate-countdown" style={{ color: '#f5a623' }}>
+        <span className="font-data font-bold text-3xl animate-countdown" style={{ color: colors.amber }}>
           {countdown}
         </span>
-        <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>{match.startTime}</span>
+        <span className="font-body text-xs" style={{ color: colors.fgDim }}>{match.startTime}</span>
       </div>
     </div>
   )
@@ -1632,17 +1633,17 @@ function CarplayScreen({
   const renderCarplayContent = () => (
     <div
       className="flex flex-col h-full"
-      style={{ background: '#030507' }}
+      style={{ background: colors.cockpitDeep }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b flex-shrink-0"
-        style={{ borderColor: '#1e2a38' }}>
+        style={{ borderColor: colors.cockpitBorder }}>
         <div className="flex items-center gap-2">
           <StatusBadge status={match.status} />
           <span className="font-display font-bold text-xs tracking-wider px-2 py-0.5 rounded"
-            style={{ background: '#111820', color: '#8a9bb0', border: '1px solid #1e2a38' }}>
+            style={{ background: colors.cockpitSurface, color: colors.fgMuted, border: `1px solid ${colors.cockpitBorder}` }}>
             {match.league}
           </span>
         </div>
@@ -1651,14 +1652,14 @@ function CarplayScreen({
           {(['full', 'half', 'quarter'] as DisplayMode[]).map(m => (
             <ModeIcon key={m} mode={m} active={displayMode === m} onClick={() => setDisplayMode(m)} />
           ))}
-          <button onClick={onBack} className="ml-2 p-1.5 rounded" style={{ background: '#111820', border: '1px solid #1e2a38' }}>
-            <X size={14} color="#8a9bb0" />
+          <button onClick={onBack} className="ml-2 p-1.5 rounded" style={{ background: colors.cockpitSurface, border: `1px solid ${colors.cockpitBorder}` }}>
+            <X size={14} color={colors.fgMuted} />
           </button>
         </div>
       </div>
 
       {/* Score section */}
-      <div className="flex-shrink-0 border-b" style={{ height: `${scorePct}%`, borderColor: '#1e2a38' }}>
+      <div className="flex-shrink-0 border-b" style={{ height: `${scorePct}%`, borderColor: colors.cockpitBorder }}>
         {isUpcoming ? (
           <UpcomingMatchCard match={match} />
         ) : (
@@ -1667,7 +1668,7 @@ function CarplayScreen({
             <div className="flex-1 flex flex-col items-center gap-1">
               <TeamSwatch color={match.home.color} altColor={match.home.altColor} size="lg" />
               <span className="font-display font-black tracking-wide"
-                style={{ fontSize: displayMode === 'full' ? 20 : 16, color: '#f0f2f5' }}>
+                style={{ fontSize: displayMode === 'full' ? 20 : 16, color: colors.fg }}>
                 {match.home.abbr}
               </span>
             </div>
@@ -1676,18 +1677,18 @@ function CarplayScreen({
             <div className="flex flex-col items-center gap-0.5">
               <div className="flex items-baseline gap-3">
                 <span className="font-data font-bold"
-                  style={{ fontSize: displayMode === 'full' ? 56 : 40, color: '#f5a623', lineHeight: 1 }}>
+                  style={{ fontSize: displayMode === 'full' ? 56 : 40, color: colors.amber, lineHeight: 1 }}>
                   {match.homeScore}
                 </span>
-                <span className="font-data" style={{ fontSize: 20, color: '#2a3a4d' }}>–</span>
+                <span className="font-data" style={{ fontSize: 20, color: colors.cockpitMuted }}>–</span>
                 <span className="font-data font-bold"
-                  style={{ fontSize: displayMode === 'full' ? 56 : 40, color: '#f0f2f5', lineHeight: 1 }}>
+                  style={{ fontSize: displayMode === 'full' ? 56 : 40, color: colors.fg, lineHeight: 1 }}>
                   {match.awayScore}
                 </span>
               </div>
-              <span className="font-body text-xs" style={{ color: '#4a5a6e' }}>{match.time}</span>
+              <span className="font-body text-xs" style={{ color: colors.fgDim }}>{match.time}</span>
               {match.period && (
-                <span className="font-display font-bold text-xs tracking-wider" style={{ color: '#8a9bb0' }}>
+                <span className="font-display font-bold text-xs tracking-wider" style={{ color: colors.fgMuted }}>
                   {match.period}
                 </span>
               )}
@@ -1697,7 +1698,7 @@ function CarplayScreen({
             <div className="flex-1 flex flex-col items-center gap-1">
               <TeamSwatch color={match.away.color} altColor={match.away.altColor} size="lg" />
               <span className="font-display font-black tracking-wide"
-                style={{ fontSize: displayMode === 'full' ? 20 : 16, color: '#f0f2f5' }}>
+                style={{ fontSize: displayMode === 'full' ? 20 : 16, color: colors.fg }}>
                 {match.away.abbr}
               </span>
             </div>
@@ -1718,14 +1719,14 @@ function CarplayScreen({
 
       {/* Bottom nav */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-t"
-        style={{ borderColor: '#1e2a38', background: '#030507' }}>
+        style={{ borderColor: colors.cockpitBorder, background: colors.cockpitDeep }}>
         {/* Prev/Next */}
         <div className="flex items-center gap-2">
-          <button onClick={goPrev} className="p-2 rounded" style={{ background: '#111820', border: '1px solid #1e2a38' }}>
-            <ChevronLeft size={16} color="#8a9bb0" />
+          <button onClick={goPrev} className="p-2 rounded" style={{ background: colors.cockpitSurface, border: `1px solid ${colors.cockpitBorder}` }}>
+            <ChevronLeft size={16} color={colors.fgMuted} />
           </button>
-          <button onClick={goNext} className="p-2 rounded" style={{ background: '#111820', border: '1px solid #1e2a38' }}>
-            <ChevronRight size={16} color="#8a9bb0" />
+          <button onClick={goNext} className="p-2 rounded" style={{ background: colors.cockpitSurface, border: `1px solid ${colors.cockpitBorder}` }}>
+            <ChevronRight size={16} color={colors.fgMuted} />
           </button>
         </div>
 
@@ -1739,7 +1740,7 @@ function CarplayScreen({
               style={{
                 width: i === matchIndex ? 16 : 6,
                 height: 6,
-                background: i === matchIndex ? '#f5a623' : '#2a3a4d',
+                background: i === matchIndex ? colors.amber : colors.cockpitMuted,
               }}
             />
           ))}
@@ -1751,9 +1752,9 @@ function CarplayScreen({
             onClick={() => setCarplayView(v => v === 'stats' ? 'scoring' : 'stats')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded font-display font-bold text-xs tracking-wide transition-all"
             style={{
-              background: '#111820',
-              color: '#f5a623',
-              border: '1px solid #1e2a38',
+              background: colors.cockpitSurface,
+              color: colors.amber,
+              border: `1px solid ${colors.cockpitBorder}`,
             }}
           >
             {carplayView === 'stats' ? <Activity size={12} /> : <BarChart2 size={12} />}
@@ -1767,7 +1768,7 @@ function CarplayScreen({
 
   if (displayMode === 'full') {
     return (
-      <div className="h-full" style={{ background: '#030507' }}>
+      <div className="h-full" style={{ background: colors.cockpitDeep }}>
         {renderCarplayContent()}
       </div>
     )
@@ -1775,14 +1776,14 @@ function CarplayScreen({
 
   if (displayMode === 'half') {
     return (
-      <div className="h-full flex" style={{ background: '#030507' }}>
-        <div className="flex-1 border-r" style={{ borderColor: '#1e2a38' }}>
+      <div className="h-full flex" style={{ background: colors.cockpitDeep }}>
+        <div className="flex-1 border-r" style={{ borderColor: colors.cockpitBorder }}>
           {renderCarplayContent()}
         </div>
         <div className="flex-1 flex items-center justify-center" style={{ background: '#0a0a0a' }}>
           <div className="text-center">
-            <LayoutTemplate size={32} color="#1e2a38" className="mx-auto mb-2" />
-            <p className="font-body text-xs" style={{ color: '#2a3a4d' }}>Other App</p>
+            <LayoutTemplate size={32} color={colors.cockpitBorder} className="mx-auto mb-2" />
+            <p className="font-body text-xs" style={{ color: colors.cockpitMuted }}>Other App</p>
           </div>
         </div>
       </div>
@@ -1791,8 +1792,8 @@ function CarplayScreen({
 
   // Quarter mode
   return (
-    <div className="h-full grid grid-cols-2 grid-rows-2" style={{ background: '#030507' }}>
-      <div className="border-r border-b" style={{ borderColor: '#1e2a38' }}>
+    <div className="h-full grid grid-cols-2 grid-rows-2" style={{ background: colors.cockpitDeep }}>
+      <div className="border-r border-b" style={{ borderColor: colors.cockpitBorder }}>
         {renderCarplayContent()}
       </div>
       {[1, 2, 3].map(i => (
@@ -1800,10 +1801,10 @@ function CarplayScreen({
           'flex items-center justify-center',
           i === 1 ? 'border-b' : '',
           i === 2 ? 'border-r' : '',
-        )} style={{ borderColor: '#1e2a38', background: '#0a0a0a' }}>
+        )} style={{ borderColor: colors.cockpitBorder, background: '#0a0a0a' }}>
           <div className="text-center">
-            <Grid2X2 size={24} color="#1e2a38" className="mx-auto mb-1" />
-            <p className="font-body text-xs" style={{ color: '#2a3a4d', fontSize: 10 }}>Other App</p>
+            <Grid2X2 size={24} color={colors.cockpitBorder} className="mx-auto mb-1" />
+            <p className="font-body text-xs" style={{ color: colors.cockpitMuted, fontSize: 10 }}>Other App</p>
           </div>
         </div>
       ))}
@@ -1956,7 +1957,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-full w-full overflow-hidden" style={{ background: '#070a0f' }}>
+    <div className="h-full w-full overflow-hidden" style={{ background: colors.cockpit }}>
       {renderScreen()}
     </div>
   )
