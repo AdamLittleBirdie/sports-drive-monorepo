@@ -2,7 +2,7 @@
 packageManager = "pnpm"
 
 [build]
-cmd = "tsc --build"
+cmd = "cd ../.. && pnpm --filter shared-types build && pnpm --filter backend build"
 
 [start]
-cmd = "node dist/index.js"
+cmd = "pnpm --filter backend start"
