@@ -1,2 +1,8 @@
 [options]
 packageManager = "pnpm"
+
+[build]
+cmd = "pnpm --filter shared-types build && pnpm --filter backend build"
+
+[start]
+cmd = "pnpm --filter backend start"
