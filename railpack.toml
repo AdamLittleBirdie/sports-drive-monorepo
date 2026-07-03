@@ -1,0 +1,3 @@
+[options]
+packageManager = "pnpm"
+pnpmVersion = "latest"
