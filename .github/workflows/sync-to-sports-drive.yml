@@ -1,0 +1,40 @@
+name: Sync Design Tokens to sports-drive-monorepo
+
+# ─── Triggers ─────────────────────────────────────────────────────────────────
+#
+# Fires on every push to main that touches design-related files (CSS, TSX, TS,
+# JSON). Sends an authenticated repository_dispatch event to sports-drive-monorepo
+# which kicks off the figma-sync workflow there to extract and PR the updated
+# design tokens.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.css'
+      - '**.tsx'
+      - '**.ts'
+      - '**.json'
+
+# ─── Permissions ──────────────────────────────────────────────────────────────
+
+permissions:
+  contents: read
+
+# ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+jobs:
+  trigger-figma-sync:
+    name: Trigger figma-sync in sports-drive-monorepo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Dispatch figma-token-update event
+        run: |
+          curl --fail-with-body -X POST \
+            -H "Authorization: token ${{ secrets.SPORTS_DRIVE_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/AdamLittleBirdie/sports-drive-monorepo/dispatches \
+            -d "{\"event_type\":\"figma-token-update\",\"client_payload\":{\"sha\":\"${{ github.sha }}\"}}"
