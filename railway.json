@@ -4,6 +4,6 @@
     "buildCommand": "pnpm --filter shared-types build && pnpm --filter frontend build"
   },
   "deploy": {
-    "startCommand": "npx serve dist -s -l ${PORT:-3000}"
+    "startCommand": "PORT=${PORT:-3000} ./node_modules/.bin/serve -s apps/frontend/dist -l ${PORT:-3000}"
   }
 }
