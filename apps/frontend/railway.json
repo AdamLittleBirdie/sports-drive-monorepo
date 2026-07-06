@@ -1,9 +1,9 @@
 {
-  "$schema": "https://railway.com/railway.schema.json",
+  "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "buildCommand": "pnpm --filter frontend build"
+    "buildCommand": "pnpm --filter shared-types build && pnpm --filter frontend build"
   },
   "deploy": {
-    "startCommand": "pnpm --filter frontend preview"
+    "startCommand": "node server.js"
   }
 }
