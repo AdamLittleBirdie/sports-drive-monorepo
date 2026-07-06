@@ -119,7 +119,7 @@ const TEAM_COLORS: Record<string, string> = {
   'Netherlands': '#FF6600', 'Belgium': '#000000', 'Portugal': '#006600',
   'Mexico': '#006600', 'USA': '#002868', 'Canada': '#FF0000',
   'Uruguay': '#0066CC', 'Japan': '#BC002D', 'South Korea': '#C60C30',
-  'Australia': '#FFD100', 'Morocco': '#C1272D', 'Senegal': '#00853F',
+  'Morocco': '#C1272D', 'Senegal': '#00853F',
   'Croatia': '#FF0000', 'Switzerland': '#FF0000',
 }
 
