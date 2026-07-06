@@ -113,6 +113,14 @@ const TEAM_COLORS: Record<string, string> = {
   'Sevilla': '#D71920', 'Valencia': '#FF7F00', 'Villarreal': '#FFD200',
   'Athletic Bilbao': '#CC2031', 'Real Sociedad': '#003087', 'Betis': '#006B3F',
   'Osasuna': '#CC2031',
+  // World Cup 2026 — national teams
+  'Argentina': '#75AADB', 'France': '#002395', 'Brazil': '#009C3B',
+  'Germany': '#000000', 'Spain': '#FFC400', 'Italy': '#009246',
+  'Netherlands': '#FF6600', 'Belgium': '#000000', 'Portugal': '#006600',
+  'Mexico': '#006600', 'USA': '#002868', 'Canada': '#FF0000',
+  'Uruguay': '#0066CC', 'Japan': '#BC002D', 'South Korea': '#C60C30',
+  'Australia': '#FFD100', 'Morocco': '#C1272D', 'Senegal': '#00853F',
+  'Croatia': '#FF0000', 'Switzerland': '#FF0000',
 }
 
 // ─── Sports Config ────────────────────────────────────────────────────────────
@@ -151,7 +159,7 @@ const SPORTS_CONFIG: Record<string, { icon: string; leagues: string[]; teams: Re
   },
   Football: {
     icon: '⚽',
-    leagues: ['Premier League', 'La Liga', 'Champions League'],
+    leagues: ['Premier League', 'La Liga', 'Champions League', 'World Cup 2026'],
     teams: {
       'Premier League': ['Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton',
         'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich',
@@ -161,6 +169,10 @@ const SPORTS_CONFIG: Record<string, { icon: string; leagues: string[]; teams: Re
         'Villarreal', 'Athletic Bilbao', 'Real Sociedad', 'Betis', 'Osasuna'],
       'Champions League': ['Real Madrid', 'Barcelona', 'Man City', 'Liverpool', 'Bayern Munich',
         'PSG', 'Juventus', 'AC Milan', 'Inter Milan', 'Dortmund'],
+      'World Cup 2026': ['Argentina', 'France', 'Brazil', 'Germany', 'Spain', 'England',
+        'Italy', 'Netherlands', 'Belgium', 'Portugal', 'Mexico', 'USA',
+        'Canada', 'Uruguay', 'Japan', 'South Korea', 'Australia', 'Morocco',
+        'Senegal', 'Croatia', 'Switzerland'],
     },
   },
 }
