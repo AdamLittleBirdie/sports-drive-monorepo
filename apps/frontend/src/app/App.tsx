@@ -121,6 +121,17 @@ const TEAM_COLORS: Record<string, string> = {
   'Uruguay': '#0066CC', 'Japan': '#BC002D', 'South Korea': '#C60C30',
   'Morocco': '#C1272D', 'Senegal': '#00853F',
   'Croatia': '#FF0000', 'Switzerland': '#FF0000',
+  // NBA
+  'Atlanta Hawks': '#E03A3E', 'Boston Celtics': '#007A33', 'Brooklyn Nets': '#000000',
+  'Charlotte Hornets': '#1D1160', 'Chicago Bulls': '#CE1141', 'Cleveland Cavaliers': '#860038',
+  'Dallas Mavericks': '#00538C', 'Denver Nuggets': '#0E2240', 'Detroit Pistons': '#C8102E',
+  'Golden State Warriors': '#1D428A', 'Houston Rockets': '#CE1141', 'Indiana Pacers': '#002D62',
+  'LA Clippers': '#C8102E', 'LA Lakers': '#552583', 'Memphis Grizzlies': '#5D76A9',
+  'Miami Heat': '#98002E', 'Milwaukee Bucks': '#00471B', 'Minnesota Timberwolves': '#0C2340',
+  'New Orleans Pelicans': '#0C2340', 'New York Knicks': '#006BB6', 'Oklahoma City Thunder': '#007AC1',
+  'Orlando Magic': '#0077C0', 'Philadelphia 76ers': '#006BB6', 'Phoenix Suns': '#1D1160',
+  'Portland Trail Blazers': '#E03A3E', 'Sacramento Kings': '#5A2D81', 'San Antonio Spurs': '#C4CED4',
+  'Toronto Raptors': '#CE1141', 'Utah Jazz': '#002B5C', 'Washington Wizards': '#002B5C',
 }
 
 // ─── Sports Config ────────────────────────────────────────────────────────────
@@ -175,6 +186,20 @@ const SPORTS_CONFIG: Record<string, { icon: string; leagues: string[]; teams: Re
         'Senegal', 'Croatia', 'Switzerland'],
     },
   },
+  Basketball: {
+    icon: '🏀',
+    leagues: ['NBA'],
+    teams: {
+      'NBA': ['Atlanta Hawks', 'Boston Celtics', 'Brooklyn Nets', 'Charlotte Hornets',
+        'Chicago Bulls', 'Cleveland Cavaliers', 'Dallas Mavericks', 'Denver Nuggets',
+        'Detroit Pistons', 'Golden State Warriors', 'Houston Rockets', 'Indiana Pacers',
+        'LA Clippers', 'LA Lakers', 'Memphis Grizzlies', 'Miami Heat',
+        'Milwaukee Bucks', 'Minnesota Timberwolves', 'New Orleans Pelicans', 'New York Knicks',
+        'Oklahoma City Thunder', 'Orlando Magic', 'Philadelphia 76ers', 'Phoenix Suns',
+        'Portland Trail Blazers', 'Sacramento Kings', 'San Antonio Spurs', 'Toronto Raptors',
+        'Utah Jazz', 'Washington Wizards'],
+    },
+  },
 }
 
 // ─── Stats Options ────────────────────────────────────────────────────────────
@@ -184,6 +209,7 @@ const STATS_OPTIONS: Record<string, string[]> = {
   NRL: ['Tries', 'Tackles', 'Metres', 'Runs', 'Offloads', 'Line Breaks', 'Errors', 'Kick Returns', 'Dummy Halves', 'Penalties'],
   Cricket: ['Runs', 'Balls', 'Fours', 'Sixes', 'SR', 'Wickets', 'Overs', 'Economy', 'Maidens', 'Catches'],
   Football: ['Goals', 'Assists', 'Shots', 'Passes', 'Tackles', 'Dribbles', 'Interceptions', 'Clearances', 'Saves', 'xG'],
+  Basketball: ['Points', 'FGM', 'FGA', 'FG%', '3PM', '3PA', '3P%', 'FTM', 'FTA', 'FT%', 'Rebounds', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls'],
 }
 
 const DEFAULT_STATS: Record<string, string[]> = {
@@ -191,6 +217,7 @@ const DEFAULT_STATS: Record<string, string[]> = {
   NRL: ['Tries', 'Tackles', 'Metres'],
   Cricket: ['Runs', 'Balls', 'SR'],
   Football: ['Goals', 'Assists', 'Shots'],
+  Basketball: ['Points', 'Rebounds', 'Assists'],
 }
 
 const DEFAULT_SORT: Record<string, string> = {
@@ -198,6 +225,7 @@ const DEFAULT_SORT: Record<string, string> = {
   NRL: 'Tries',
   Cricket: 'Runs',
   Football: 'Goals',
+  Basketball: 'Points',
 }
 
 // ─── API Config ───────────────────────────────────────────────────────────────
@@ -224,6 +252,28 @@ interface ApiMatch {
   status: 'scheduled' | 'in_progress' | 'completed'
   home_team: ApiTeam
   away_team: ApiTeam
+}
+
+interface ApiBasketballTeam {
+  id: number
+  name: string
+  abbreviation: string
+  logo_url: string | null
+}
+
+interface ApiBasketballMatch {
+  id: number
+  season: string
+  game_date: string
+  home_team_id: number
+  away_team_id: number
+  home_score: number | null
+  away_score: number | null
+  status: 'scheduled' | 'in_progress' | 'completed'
+  period: number | null
+  period_time: string | null
+  home_team: ApiBasketballTeam
+  away_team: ApiBasketballTeam
 }
 
 // ─── API Transform ────────────────────────────────────────────────────────────
@@ -272,6 +322,67 @@ function transformApiMatch(m: ApiMatch): Match {
     time: status === 'live' ? m.round : '',
     status,
     period: status === 'live' ? m.round : undefined,
+    topPlayers: [],
+    scoreProgression: undefined,
+    startTime,
+  }
+}
+
+function transformApiBasketballMatch(m: ApiBasketballMatch): Match {
+  const status = mapApiStatusToMatchStatus(m.status)
+  const homeColor = getTeamColor(m.home_team.name)
+  const awayColor = getTeamColor(m.away_team.name)
+
+  const date = new Date(m.game_date)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const isTomorrow = date.toDateString() === new Date(now.getTime() + 86400000).toDateString()
+  const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  let startTime: string | undefined
+  if (status === 'upcoming') {
+    if (isToday) startTime = `Today ${timeStr}`
+    else if (isTomorrow) startTime = `Tomorrow ${timeStr}`
+    else startTime = date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` ${timeStr}`
+  }
+
+  let timeDisplay = ''
+  let period: string | undefined
+  if (status === 'live') {
+    const periodLabel = m.period != null
+      ? (m.period > 4 ? `OT${m.period - 4}` : `Q${m.period}`)
+      : ''
+    const periodTime = m.period_time ?? ''
+    timeDisplay = periodTime ? `${periodLabel} ${periodTime}` : periodLabel
+    period = periodLabel || undefined
+  } else if (status === 'ft') {
+    timeDisplay = 'FT'
+  }
+
+  // Generate abbreviated team name from full name
+  const homeAbbr = m.home_team.abbreviation ||
+    m.home_team.name.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
+  const awayAbbr = m.away_team.abbreviation ||
+    m.away_team.name.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
+
+  return {
+    id: `bball-${m.id}`,
+    sport: 'Basketball',
+    league: 'NBA',
+    home: {
+      name: m.home_team.name,
+      abbr: homeAbbr,
+      color: homeColor,
+    },
+    away: {
+      name: m.away_team.name,
+      abbr: awayAbbr,
+      color: awayColor,
+    },
+    homeScore: m.home_score ?? 0,
+    awayScore: m.away_score ?? 0,
+    time: timeDisplay,
+    status,
+    period,
     topPlayers: [],
     scoreProgression: undefined,
     startTime,
@@ -727,7 +838,7 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
   onNavigate: (s: Screen) => void
   onCarplay: () => void
 }) {
-  const sports = ['AFL', 'NRL', 'Cricket', 'Football']
+  const sports = ['AFL', 'NRL', 'Cricket', 'Football', 'Basketball']
 
   return (
     <MobileShell current="home" onNavigate={onNavigate}>
@@ -1088,7 +1199,7 @@ function StatsConfigScreen({
   onNavigate: (s: Screen) => void
 }) {
   const [activeSport, setActiveSport] = useState('AFL')
-  const sports = ['AFL', 'NRL', 'Cricket', 'Football']
+  const sports = ['AFL', 'NRL', 'Cricket', 'Football', 'Basketball']
   const stats = enabledStats[activeSport] || DEFAULT_STATS[activeSport]
   const sort = sortStats[activeSport] || DEFAULT_SORT[activeSport]
   const liveMatch = matches.find(m => m.sport === activeSport && m.status === 'live')
@@ -1918,26 +2029,51 @@ export default function App() {
     let cancelled = false
     setMatchesLoading(true)
     setMatchesError(null)
-    fetch(`${API_BASE_URL}/api/matches`)
+
+    const fetchAfl = fetch(`${API_BASE_URL}/api/matches`)
       .then(res => {
-        if (!res.ok) throw new Error(`API error: ${res.status}`)
+        if (!res.ok) throw new Error(`AFL API error: ${res.status}`)
         return res.json() as Promise<{ data: ApiMatch[] } | ApiMatch[]>
       })
       .then(payload => {
-        if (!cancelled) {
-          const data: ApiMatch[] = Array.isArray(payload) ? payload : (payload as { data: ApiMatch[] }).data ?? []
-          setMatches(data.map(transformApiMatch))
-          setMatchesLoading(false)
-        }
+        const data: ApiMatch[] = Array.isArray(payload) ? payload : (payload as { data: ApiMatch[] }).data ?? []
+        return data.map(transformApiMatch)
       })
       .catch(err => {
-        if (!cancelled) {
-          console.warn('Failed to fetch matches from API, using mock data:', err)
-          setMatchesError(err.message)
-          setMatches(MOCK_MATCHES)
-          setMatchesLoading(false)
-        }
+        console.warn('Failed to fetch AFL matches from API, using mock data:', err)
+        return MOCK_MATCHES.filter(m => m.sport !== 'Basketball')
       })
+
+    const fetchBasketball = fetch(`${API_BASE_URL}/api/basketball/matches`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Basketball API error: ${res.status}`)
+        return res.json() as Promise<{ statusCode: number; data: ApiBasketballMatch[] } | ApiBasketballMatch[]>
+      })
+      .then(payload => {
+        const data: ApiBasketballMatch[] = Array.isArray(payload)
+          ? payload
+          : (payload as { statusCode: number; data: ApiBasketballMatch[] }).data ?? []
+        return data.map(transformApiBasketballMatch)
+      })
+      .catch(err => {
+        console.warn('Failed to fetch Basketball matches from API:', err)
+        return [] as Match[]
+      })
+
+    Promise.all([fetchAfl, fetchBasketball]).then(([aflMatches, basketballMatches]) => {
+      if (!cancelled) {
+        setMatches([...aflMatches, ...basketballMatches])
+        setMatchesLoading(false)
+      }
+    }).catch(err => {
+      if (!cancelled) {
+        console.warn('Failed to fetch matches:', err)
+        setMatchesError(err.message)
+        setMatches(MOCK_MATCHES)
+        setMatchesLoading(false)
+      }
+    })
+
     return () => { cancelled = true }
   }, [])
 
