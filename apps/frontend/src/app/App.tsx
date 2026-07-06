@@ -188,9 +188,87 @@ const DEFAULT_SORT: Record<string, string> = {
   Football: 'Goals',
 }
 
+// ─── API Config ───────────────────────────────────────────────────────────────
+
+const API_BASE_URL = 'https://sports-drive-backend-production.up.railway.app'
+
+// ─── API Types ────────────────────────────────────────────────────────────────
+
+interface ApiTeam {
+  id: number
+  name: string
+  abbreviation: string
+  logo_url: string | null
+}
+
+interface ApiMatch {
+  id: number
+  round: string
+  home_team_id: number
+  away_team_id: number
+  date: string
+  home_score: number | null
+  away_score: number | null
+  status: 'scheduled' | 'in_progress' | 'completed'
+  home_team: ApiTeam
+  away_team: ApiTeam
+}
+
+// ─── API Transform ────────────────────────────────────────────────────────────
+
+function mapApiStatusToMatchStatus(status: ApiMatch['status']): MatchStatus {
+  switch (status) {
+    case 'in_progress': return 'live'
+    case 'scheduled': return 'upcoming'
+    case 'completed': return 'ft'
+  }
+}
+
+function transformApiMatch(m: ApiMatch): Match {
+  const status = mapApiStatusToMatchStatus(m.status)
+  const homeColor = getTeamColor(m.home_team.name)
+  const awayColor = getTeamColor(m.away_team.name)
+
+  const date = new Date(m.date)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const isTomorrow = date.toDateString() === new Date(now.getTime() + 86400000).toDateString()
+  const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  let startTime: string | undefined
+  if (status === 'upcoming') {
+    if (isToday) startTime = `Today ${timeStr}`
+    else if (isTomorrow) startTime = `Tomorrow ${timeStr}`
+    else startTime = date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` ${timeStr}`
+  }
+
+  return {
+    id: String(m.id),
+    sport: 'AFL',
+    league: 'AFL Premiership',
+    home: {
+      name: m.home_team.name,
+      abbr: m.home_team.abbreviation,
+      color: homeColor,
+    },
+    away: {
+      name: m.away_team.name,
+      abbr: m.away_team.abbreviation,
+      color: awayColor,
+    },
+    homeScore: m.home_score ?? 0,
+    awayScore: m.away_score ?? 0,
+    time: status === 'live' ? m.round : '',
+    status,
+    period: status === 'live' ? m.round : undefined,
+    topPlayers: [],
+    scoreProgression: undefined,
+    startTime,
+  }
+}
+
 // ─── Mock Match Data ──────────────────────────────────────────────────────────
 
-const MATCHES: Match[] = [
+const MOCK_MATCHES: Match[] = [
   {
     id: 'm1',
     sport: 'AFL',
@@ -717,10 +795,11 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
 // ─── Sports Selection Screen ──────────────────────────────────────────────────
 
 function SportsSelectionScreen({
-  enabledLeagues, selectedTeams, enabledStats, sortStats, defaultView,
+  matches, enabledLeagues, selectedTeams, enabledStats, sortStats, defaultView,
   onToggleLeague, onToggleTeam, onToggleStat, onSetSort, onSetDefaultView,
   onNavigate, onBack,
 }: {
+  matches: Match[]
   enabledLeagues: Record<string, boolean>
   selectedTeams: Record<string, string[]>
   enabledStats: Record<string, string[]>
@@ -921,7 +1000,7 @@ function SportsSelectionScreen({
                       <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: colors.fgDim, letterSpacing: '0.1em' }}>
                         DRIVE PREVIEW
                       </p>
-                      {MATCHES.filter(m => m.sport === sport && m.status === 'live').slice(0, 1).map(match => (
+                      {matches.filter(m => m.sport === sport && m.status === 'live').slice(0, 1).map(match => (
                         <div key={match.id}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-display font-bold text-xs" style={{ color: colors.fg }}>
@@ -949,7 +1028,7 @@ function SportsSelectionScreen({
                           </div>
                         </div>
                       ))}
-                      {MATCHES.filter(m => m.sport === sport && m.status === 'live').length === 0 && (
+                      {matches.filter(m => m.sport === sport && m.status === 'live').length === 0 && (
                         <p className="font-body text-xs" style={{ color: colors.fgDim }}>No live matches</p>
                       )}
                     </div>
@@ -985,10 +1064,11 @@ function SportsSelectionScreen({
 // ─── Stats Config Screen ──────────────────────────────────────────────────────
 
 function StatsConfigScreen({
-  enabledStats, sortStats,
+  matches, enabledStats, sortStats,
   onToggleStat, onSetSort,
   onNavigate,
 }: {
+  matches: Match[]
   enabledStats: Record<string, string[]>
   sortStats: Record<string, string>
   onToggleStat: (sport: string, stat: string) => void
@@ -999,7 +1079,7 @@ function StatsConfigScreen({
   const sports = ['AFL', 'NRL', 'Cricket', 'Football']
   const stats = enabledStats[activeSport] || DEFAULT_STATS[activeSport]
   const sort = sortStats[activeSport] || DEFAULT_SORT[activeSport]
-  const liveMatch = MATCHES.find(m => m.sport === activeSport && m.status === 'live')
+  const liveMatch = matches.find(m => m.sport === activeSport && m.status === 'live')
 
   return (
     <MobileShell current="stats" onNavigate={onNavigate}>
@@ -1817,6 +1897,37 @@ function CarplayScreen({
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash')
 
+  // Match data state
+  const [matches, setMatches] = useState<Match[]>(MOCK_MATCHES)
+  const [matchesLoading, setMatchesLoading] = useState(false)
+  const [matchesError, setMatchesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setMatchesLoading(true)
+    setMatchesError(null)
+    fetch(`${API_BASE_URL}/api/matches`)
+      .then(res => {
+        if (!res.ok) throw new Error(`API error: ${res.status}`)
+        return res.json() as Promise<ApiMatch[]>
+      })
+      .then(data => {
+        if (!cancelled) {
+          setMatches(data.map(transformApiMatch))
+          setMatchesLoading(false)
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          console.warn('Failed to fetch matches from API, using mock data:', err)
+          setMatchesError(err.message)
+          setMatches(MOCK_MATCHES)
+          setMatchesLoading(false)
+        }
+      })
+    return () => { cancelled = true }
+  }, [])
+
   // Preferences state
   const [enabledLeagues, setEnabledLeagues] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {}
@@ -1896,7 +2007,7 @@ export default function App() {
       case 'home':
         return (
           <HomeScreen
-            matches={MATCHES}
+            matches={matches}
             onNavigate={navigate}
             onCarplay={() => setCurrentScreen('carplay')}
           />
@@ -1905,6 +2016,7 @@ export default function App() {
       case 'sports':
         return (
           <SportsSelectionScreen
+            matches={matches}
             enabledLeagues={enabledLeagues}
             selectedTeams={selectedTeams}
             enabledStats={enabledStats}
@@ -1923,6 +2035,7 @@ export default function App() {
       case 'stats':
         return (
           <StatsConfigScreen
+            matches={matches}
             enabledStats={enabledStats}
             sortStats={sortStats}
             onToggleStat={handleToggleStat}
@@ -1943,7 +2056,7 @@ export default function App() {
       case 'carplay':
         return (
           <CarplayScreen
-            matches={MATCHES}
+            matches={matches}
             enabledStats={enabledStats}
             sortStats={sortStats}
             defaultView={defaultView}
