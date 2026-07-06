@@ -1909,10 +1909,11 @@ export default function App() {
     fetch(`${API_BASE_URL}/api/matches`)
       .then(res => {
         if (!res.ok) throw new Error(`API error: ${res.status}`)
-        return res.json() as Promise<ApiMatch[]>
+        return res.json() as Promise<{ data: ApiMatch[] } | ApiMatch[]>
       })
-      .then(data => {
+      .then(payload => {
         if (!cancelled) {
+          const data: ApiMatch[] = Array.isArray(payload) ? payload : (payload as { data: ApiMatch[] }).data ?? []
           setMatches(data.map(transformApiMatch))
           setMatchesLoading(false)
         }
