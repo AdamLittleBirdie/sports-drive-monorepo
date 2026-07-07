@@ -3,8 +3,9 @@ import {
   Car, Home, Trophy, SlidersHorizontal, Settings,
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Clock, Check, X, BarChart2, Bell, User,
-  CreditCard, LogOut, RefreshCw, ArrowLeft,
+  CreditCard, LogOut, RefreshCw,
   Maximize2, LayoutTemplate, Grid2X2, Activity,
+  Target, Zap,
 } from 'lucide-react'
 // CSS custom properties from theme.css / design-tokens.css
 const css = {
@@ -61,7 +62,7 @@ const css = {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Screen = 'splash' | 'home' | 'sports' | 'stats' | 'settings' | 'carplay'
+type Screen = 'splash' | 'home' | 'scores' | 'sports' | 'stats' | 'settings' | 'carplay'
 type DisplayMode = 'full' | 'half' | 'quarter'
 type CarplayView = 'stats' | 'scoring'
 type MatchStatus = 'live' | 'upcoming' | 'ft'
@@ -725,10 +726,10 @@ function ModeIcon({ mode, active, onClick }: { mode: DisplayMode; active: boolea
 
 function BottomNav({ current, onNavigate }: { current: Screen; onNavigate: (s: Screen) => void }) {
   const items: { screen: Screen; icon: React.ReactNode; label: string }[] = [
-    { screen: 'home', icon: <Home size={20} />, label: 'Home' },
-    { screen: 'sports', icon: <Trophy size={20} />, label: 'Sports' },
-    { screen: 'stats', icon: <SlidersHorizontal size={20} />, label: 'Stats' },
-    { screen: 'settings', icon: <Settings size={20} />, label: 'Settings' },
+    { screen: 'home',   icon: <Home size={20} />,             label: 'Home' },
+    { screen: 'scores', icon: <Zap size={20} />,              label: 'Scores' },
+    { screen: 'sports', icon: <Trophy size={20} />,           label: 'Sports' },
+    { screen: 'stats',  icon: <SlidersHorizontal size={20} />, label: 'Stats' },
   ]
   return (
     <nav className="flex items-center border-t" style={{ background: css.card, borderColor: css.cockpitBorder, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
@@ -931,7 +932,7 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
               key={sport}
               sport={sport}
               matches={matches.filter(m => m.sport === sport)}
-              onClick={() => onNavigate('sports')}
+              onClick={() => onNavigate('scores')}
             />
           ))}
         </div>
@@ -966,278 +967,436 @@ function HomeScreen({ matches, onNavigate, onCarplay }: {
   )
 }
 
-// ─── Sports Selection Screen ──────────────────────────────────────────────────
+// ─── Scores Screen ────────────────────────────────────────────────────────────
 
-function SportsSelectionScreen({
-  matches, enabledLeagues, selectedTeams, enabledStats, sortStats, defaultView,
-  onToggleLeague, onToggleTeam, onToggleStat, onSetSort, onSetDefaultView,
-  onNavigate, onBack,
+function MatchCard({ match }: { match: Match }) {
+  const isLive = match.status === 'live'
+  const isUpcoming = match.status === 'upcoming'
+
+  return (
+    <div
+      className="rounded-md overflow-hidden"
+      style={{
+        background: css.card,
+        border: `1px solid ${isLive ? css.greenGlowBorder : css.cockpitBorder}`,
+        boxShadow: isLive ? `0 0 12px ${css.greenGlowSubtle}` : 'none',
+      }}
+    >
+      {/* League + status row */}
+      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: css.cockpitBorder }}>
+        <span className="font-display font-bold text-xs tracking-wider" style={{ color: css.fgDim, letterSpacing: '0.1em' }}>
+          {match.league}
+        </span>
+        <StatusBadge status={match.status} />
+      </div>
+
+      {/* Score row */}
+      <div className="flex items-center px-3 py-3 gap-3">
+        {/* Home */}
+        <div className="flex-1 flex items-center gap-2">
+          <TeamSwatch color={match.home.color} altColor={match.home.altColor} size="md" />
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-sm" style={{ color: css.foreground }}>{match.home.abbr}</span>
+            <span className="font-body text-xs truncate" style={{ color: css.fgDim, maxWidth: 80 }}>{match.home.name}</span>
+          </div>
+        </div>
+
+        {/* Score / time */}
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+          {isUpcoming ? (
+            <>
+              <span className="font-display font-bold text-xs" style={{ color: css.primary }}>{match.startTime}</span>
+              <span className="font-data text-xs" style={{ color: css.fgDim }}>vs</span>
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="font-data font-bold text-xl" style={{ color: isLive ? css.primary : css.foreground }}>{match.homeScore}</span>
+                <span className="font-data text-sm" style={{ color: css.fgDim }}>–</span>
+                <span className="font-data font-bold text-xl" style={{ color: css.foreground }}>{match.awayScore}</span>
+              </div>
+              {match.time && (
+                <span className="font-body text-xs" style={{ color: isLive ? css.accent : css.fgDim }}>{match.time}</span>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Away */}
+        <div className="flex-1 flex items-center gap-2 justify-end">
+          <div className="flex flex-col items-end">
+            <span className="font-display font-bold text-sm" style={{ color: css.foreground }}>{match.away.abbr}</span>
+            <span className="font-body text-xs truncate" style={{ color: css.fgDim, maxWidth: 80 }}>{match.away.name}</span>
+          </div>
+          <TeamSwatch color={match.away.color} altColor={match.away.altColor} size="md" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ScoresScreen({ matches, onNavigate }: {
+  matches: Match[]
+  onNavigate: (s: Screen) => void
+}) {
+  const [activeTab, setActiveTab] = useState<'live' | 'upcoming'>('live')
+
+  const liveMatches = matches.filter(m => m.status === 'live')
+  const upcomingMatches = matches.filter(m => m.status === 'upcoming')
+  const displayMatches = activeTab === 'live' ? liveMatches : upcomingMatches
+
+  return (
+    <MobileShell current="scores" onNavigate={onNavigate}>
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: css.cockpitBorder }}>
+        <div className="flex items-center gap-2">
+          <Zap size={18} color={css.primary} />
+          <h1 className="font-display font-bold tracking-wide" style={{ color: css.foreground, letterSpacing: '0.08em' }}>
+            SCORES
+          </h1>
+        </div>
+        {liveMatches.length > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-full font-display font-bold text-xs"
+            style={{ background: css.greenGlowSubtle, color: css.accent, border: `1px solid ${css.greenGlowBorder}` }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: css.accent }} />
+            {liveMatches.length} LIVE
+          </span>
+        )}
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex border-b" style={{ borderColor: css.cockpitBorder }}>
+        {(['live', 'upcoming'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className="flex-1 py-2.5 font-display font-bold text-xs tracking-wider transition-all"
+            style={{
+              color: activeTab === tab ? css.primary : css.fgDim,
+              borderBottom: activeTab === tab ? `2px solid ${css.primary}` : '2px solid transparent',
+              background: 'transparent',
+              letterSpacing: '0.1em',
+            }}
+          >
+            {tab === 'live' ? `LIVE (${liveMatches.length})` : `UPCOMING (${upcomingMatches.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Match list */}
+      <div className="p-4 flex flex-col gap-3">
+        {displayMatches.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <Zap size={32} color={css.cockpitMuted} />
+            <p className="font-body text-sm" style={{ color: css.fgDim }}>
+              {activeTab === 'live' ? 'No live matches right now' : 'No upcoming matches'}
+            </p>
+          </div>
+        ) : (
+          displayMatches.map(m => <MatchCard key={m.id} match={m} />)
+        )}
+      </div>
+    </MobileShell>
+  )
+}
+
+// ─── Sports Screen ────────────────────────────────────────────────────────────
+
+function SportsSettingsModal({
+  sport,
+  enabledStats,
+  sortStats,
+  showUpcoming,
+  showLast24h,
+  onToggleStat,
+  onSetSort,
+  onToggleShowUpcoming,
+  onToggleShowLast24h,
+  onClose,
+}: {
+  sport: string
+  enabledStats: Record<string, string[]>
+  sortStats: Record<string, string>
+  showUpcoming: boolean
+  showLast24h: boolean
+  onToggleStat: (sport: string, stat: string) => void
+  onSetSort: (sport: string, stat: string) => void
+  onToggleShowUpcoming: (v: boolean) => void
+  onToggleShowLast24h: (v: boolean) => void
+  onClose: () => void
+}) {
+  const stats = enabledStats[sport] || DEFAULT_STATS[sport]
+  const sort = sortStats[sport] || DEFAULT_SORT[sport]
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col justify-end"
+      style={{ background: 'rgba(3,5,7,0.85)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="rounded-t-xl overflow-hidden flex flex-col animate-slide-up"
+        style={{ background: css.cockpitSurface, border: `1px solid ${css.cockpitBorder}`, maxHeight: '85vh' }}
+      >
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: css.cockpitBorder }}>
+          <div className="flex items-center gap-2">
+            <Settings size={16} color={css.primary} />
+            <span className="font-display font-bold tracking-wide" style={{ color: css.foreground, letterSpacing: '0.08em' }}>
+              {sport.toUpperCase()} PREFERENCES
+            </span>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded" style={{ color: css.fgMuted }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-4 flex flex-col gap-4">
+          {/* Stats to show */}
+          <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-display font-bold text-xs tracking-wider" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
+                STATS TO SHOW
+              </p>
+              <span className="font-data text-xs" style={{ color: css.fgDim }}>{stats.length}/5 · min 3</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {STATS_OPTIONS[sport].map(stat => {
+                const active = stats.includes(stat)
+                const atMax = stats.length >= 5
+                const atMin = stats.length <= 3
+                const disabled = (active && atMin) || (!active && atMax)
+                return (
+                  <div key={stat} className="flex items-center justify-between py-0.5">
+                    <span className="font-body text-sm" style={{ color: active ? css.foreground : css.fgDim }}>{stat}</span>
+                    <Toggle
+                      checked={active}
+                      onChange={() => {
+                        if (disabled) return
+                        onToggleStat(sport, stat)
+                      }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Sort order */}
+          <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
+            <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
+              SORT ORDER
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {STATS_OPTIONS[sport].map(stat => (
+                <button
+                  key={stat}
+                  onClick={() => onSetSort(sport, stat)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
+                  style={{
+                    background: sort === stat ? css.primary : css.cockpitSurface,
+                    color: sort === stat ? css.background : css.fgMuted,
+                    border: `1px solid ${sort === stat ? css.primary : css.cockpitBorder}`,
+                  }}
+                >
+                  {sort === stat && <Check size={10} />}
+                  {stat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Display preferences */}
+          <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
+            <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
+              DISPLAY PREFERENCES
+            </p>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-body text-sm" style={{ color: css.foreground }}>Show upcoming matches</span>
+                  <p className="font-body text-xs" style={{ color: css.fgDim }}>Display scheduled fixtures</p>
+                </div>
+                <Toggle checked={showUpcoming} onChange={onToggleShowUpcoming} />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-body text-sm" style={{ color: css.foreground }}>Show last 24 hours</span>
+                  <p className="font-body text-xs" style={{ color: css.fgDim }}>Include recently completed</p>
+                </div>
+                <Toggle checked={showLast24h} onChange={onToggleShowLast24h} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Done button */}
+        <div className="px-4 py-3 border-t flex-shrink-0" style={{ borderColor: css.cockpitBorder }}>
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-md font-display font-bold tracking-wide text-sm transition-all"
+            style={{ background: css.primary, color: css.background }}
+          >
+            DONE
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SportsScreen({
+  matches, enabledLeagues, selectedTeams, enabledStats, sortStats,
+  onToggleLeague, onToggleTeam, onToggleStat, onSetSort,
+  onNavigate,
 }: {
   matches: Match[]
   enabledLeagues: Record<string, boolean>
   selectedTeams: Record<string, string[]>
   enabledStats: Record<string, string[]>
   sortStats: Record<string, string>
-  defaultView: Record<string, 'stats' | 'scoring'>
   onToggleLeague: (league: string) => void
   onToggleTeam: (sport: string, team: string) => void
   onToggleStat: (sport: string, stat: string) => void
   onSetSort: (sport: string, stat: string) => void
-  onSetDefaultView: (sport: string, view: 'stats' | 'scoring') => void
   onNavigate: (s: Screen) => void
-  onBack: () => void
 }) {
-  const [expandedSport, setExpandedSport] = useState<string | null>('AFL')
-  const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({})
+  const [expandedLeagues, setExpandedLeagues] = useState<Record<string, boolean>>({})
+  const [settingsSport, setSettingsSport] = useState<string | null>(null)
+  const [showUpcoming, setShowUpcoming] = useState(true)
+  const [showLast24h, setShowLast24h] = useState(false)
 
   const sports = Object.keys(SPORTS_CONFIG)
 
   return (
     <MobileShell current="sports" onNavigate={onNavigate}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: css.cockpitBorder }}>
-        <button onClick={onBack} className="p-1.5 rounded" style={{ color: css.fgMuted }}>
-          <ArrowLeft size={20} />
-        </button>
-        <Trophy size={18} color={css.primary} />
-        <h1 className="font-display font-bold tracking-wide" style={{ color: css.foreground, letterSpacing: '0.08em' }}>
-          SPORTS & LEAGUES
-        </h1>
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: css.cockpitBorder }}>
+        <div className="flex items-center gap-2">
+          <Trophy size={18} color={css.primary} />
+          <h1 className="font-display font-bold tracking-wide" style={{ color: css.foreground, letterSpacing: '0.08em' }}>
+            SPORTS
+          </h1>
+        </div>
       </div>
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="flex flex-col">
         {sports.map(sport => {
           const config = SPORTS_CONFIG[sport]
-          const isExpanded = expandedSport === sport
-          const stats = enabledStats[sport] || DEFAULT_STATS[sport]
-          const sort = sortStats[sport] || DEFAULT_SORT[sport]
-          const view = defaultView[sport] || 'stats'
 
           return (
-            <div key={sport} className="rounded-md overflow-hidden" style={{ border: `1px solid ${css.cockpitBorder}` }}>
-              {/* Sport header */}
-              <button
-                onClick={() => setExpandedSport(isExpanded ? null : sport)}
-                className="w-full flex items-center justify-between px-4 py-3"
-                style={{ background: css.card }}
+            <div key={sport}>
+              {/* Sport section header */}
+              <div
+                className="flex items-center justify-between px-4 py-2.5 border-b"
+                style={{ background: css.cockpitSurface, borderColor: css.cockpitBorder }}
               >
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 18 }}>{config.icon}</span>
-                  <span className="font-display font-bold tracking-wide" style={{ color: css.foreground }}>{sport}</span>
-                  <span className="text-xs font-body" style={{ color: css.fgDim }}>
-                    {config.leagues.length} leagues
+                  <span style={{ fontSize: 16 }}>{config.icon}</span>
+                  <span className="font-display font-bold tracking-wider text-sm" style={{ color: css.fgMuted, letterSpacing: '0.1em' }}>
+                    {sport.toUpperCase()}
                   </span>
                 </div>
-                {isExpanded ? <ChevronUp size={16} color={css.fgDim} /> : <ChevronDown size={16} color={css.fgDim} />}
-              </button>
+                <button
+                  onClick={() => setSettingsSport(sport)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded font-display font-bold text-xs tracking-wide transition-all"
+                  style={{
+                    background: css.amberGlowBgFaint,
+                    color: css.primary,
+                    border: `1px solid ${css.amberGlowBorder}`,
+                  }}
+                >
+                  <Settings size={11} />
+                  SETTINGS
+                </button>
+              </div>
 
-              {isExpanded && (
-                <div className="border-t" style={{ borderColor: css.cockpitBorder, background: css.background }}>
-                  {/* Leagues */}
-                  <div className="px-4 py-3">
-                    <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
-                      LEAGUES
-                    </p>
-                    {config.leagues.map(league => {
-                      const leagueKey = `${sport}:${league}`
-                      const enabled = enabledLeagues[leagueKey] !== false
-                      const teamsExpanded = expandedTeams[leagueKey]
+              {/* Leagues */}
+              {config.leagues.map(league => {
+                const leagueKey = `${sport}:${league}`
+                const enabled = enabledLeagues[leagueKey] !== false
+                const teamsExpanded = expandedLeagues[leagueKey]
 
-                      return (
-                        <div key={league} className="mb-2">
-                          <div className="flex items-center justify-between py-2">
-                            <div className="flex items-center gap-2">
+                return (
+                  <div key={leagueKey} className="border-b" style={{ borderColor: css.cockpitBorder }}>
+                    {/* League row */}
+                    <div className="flex items-center px-4 py-3" style={{ background: css.card }}>
+                      <button
+                        onClick={() => setExpandedLeagues(prev => ({ ...prev, [leagueKey]: !prev[leagueKey] }))}
+                        className="flex items-center gap-2 flex-1 text-left"
+                      >
+                        {teamsExpanded
+                          ? <ChevronUp size={14} color={css.fgDim} />
+                          : <ChevronDown size={14} color={css.fgDim} />
+                        }
+                        <span className="font-body text-sm" style={{ color: enabled ? css.foreground : css.fgDim }}>
+                          {league}
+                        </span>
+                        <span className="font-body text-xs" style={{ color: css.fgDim }}>
+                          {config.teams[league]?.length ?? 0} teams
+                        </span>
+                      </button>
+                      <Toggle checked={enabled} onChange={() => onToggleLeague(leagueKey)} />
+                    </div>
+
+                    {/* Teams (expandable) */}
+                    {teamsExpanded && (
+                      <div className="px-4 pb-3 pt-1" style={{ background: css.background }}>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {config.teams[league]?.map(team => {
+                            const teamKey = `${sport}:${league}`
+                            const teamSelected = (selectedTeams[teamKey] || []).includes(team)
+                            return (
                               <button
-                                onClick={() => setExpandedTeams(prev => ({ ...prev, [leagueKey]: !prev[leagueKey] }))}
-                                className="p-0.5"
+                                key={team}
+                                onClick={() => onToggleTeam(teamKey, team)}
+                                className="flex items-center gap-2 px-2.5 py-2 rounded text-left transition-all"
+                                style={{
+                                  background: teamSelected ? css.amberGlowBg : css.card,
+                                  border: `1px solid ${teamSelected ? css.amberGlowBorderStrong : css.cockpitBorder}`,
+                                }}
                               >
-                                {teamsExpanded ? <ChevronUp size={14} color={css.fgDim} /> : <ChevronDown size={14} color={css.fgDim} />}
+                                <TeamSwatch color={getTeamColor(team)} size="sm" />
+                                <span className="font-body text-xs truncate" style={{ color: teamSelected ? css.primary : css.fgMuted }}>
+                                  {team}
+                                </span>
+                                {teamSelected && <Check size={10} color={css.primary} className="ml-auto flex-shrink-0" />}
                               </button>
-                              <span className="font-body text-sm" style={{ color: css.foreground }}>{league}</span>
-                            </div>
-                            <Toggle checked={enabled} onChange={() => onToggleLeague(leagueKey)} />
-                          </div>
-
-                          {teamsExpanded && enabled && (
-                            <div className="ml-6 grid grid-cols-2 gap-1 pb-2">
-                              {config.teams[league]?.map(team => {
-                                const teamSelected = (selectedTeams[`${sport}:${league}`] || []).includes(team)
-                                return (
-                                  <button
-                                    key={team}
-                                    onClick={() => onToggleTeam(`${sport}:${league}`, team)}
-                                    className="flex items-center gap-1.5 px-2 py-1.5 rounded text-left transition-all"
-                                    style={{
-                                      background: teamSelected ? css.amberGlowBg : css.card,
-                                      border: `1px solid ${teamSelected ? css.amberGlowBorderStrong : css.cockpitBorder}`,
-                                    }}
-                                  >
-                                    <TeamSwatch color={getTeamColor(team)} size="sm" />
-                                    <span className="font-body text-xs truncate" style={{ color: teamSelected ? css.primary : css.fgMuted }}>
-                                      {team}
-                                    </span>
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          )}
+                            )
+                          })}
                         </div>
-                      )
-                    })}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Stat Views */}
-                  <div className="border-t px-4 py-3" style={{ borderColor: css.cockpitBorder }}>
-                    <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
-                      STAT VIEWS
-                    </p>
-
-                    {/* Sort by */}
-                    <div className="mb-3">
-                      <p className="font-body text-xs mb-2" style={{ color: css.fgMuted }}>Sort by</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {STATS_OPTIONS[sport].slice(0, 5).map(stat => (
-                          <button
-                            key={stat}
-                            onClick={() => onSetSort(sport, stat)}
-                            className="px-2 py-1 rounded text-xs font-body transition-all"
-                            style={{
-                              background: sort === stat ? css.primary : css.card,
-                              color: sort === stat ? css.background : css.fgMuted,
-                              border: `1px solid ${sort === stat ? css.primary : css.cockpitBorder}`,
-                              fontWeight: sort === stat ? 700 : 400,
-                            }}
-                          >
-                            {stat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Displayed stats */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-body text-xs" style={{ color: css.fgMuted }}>Displayed stats</p>
-                        <span className="font-data text-xs" style={{ color: css.fgDim }}>{stats.length}/5</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {STATS_OPTIONS[sport].map(stat => {
-                          const active = stats.includes(stat)
-                          const atMax = stats.length >= 5
-                          const atMin = stats.length <= 3
-                          return (
-                            <button
-                              key={stat}
-                              onClick={() => {
-                                if (active && atMin) return
-                                if (!active && atMax) return
-                                onToggleStat(sport, stat)
-                              }}
-                              className="px-2 py-1 rounded text-xs font-body transition-all"
-                              style={{
-                                background: active ? css.amberGlowSubtle : css.card,
-                                color: active ? css.primary : (!active && atMax) ? css.cockpitMuted : css.fgMuted,
-                                border: `1px solid ${active ? css.amberGlowBorderStrong : css.cockpitBorder}`,
-                                opacity: (!active && atMax) || (active && atMin) ? 0.5 : 1,
-                              }}
-                            >
-                              {stat}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Default view */}
-                    <div className="mb-3">
-                      <p className="font-body text-xs mb-2" style={{ color: css.fgMuted }}>Default drive view</p>
-                      <div className="flex gap-2">
-                        {(['stats', 'scoring'] as const).map(v => (
-                          <button
-                            key={v}
-                            onClick={() => onSetDefaultView(sport, v)}
-                            className="flex-1 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
-                            style={{
-                              background: view === v ? css.primary : css.card,
-                              color: view === v ? css.background : css.fgMuted,
-                              border: `1px solid ${view === v ? css.primary : css.cockpitBorder}`,
-                            }}
-                          >
-                            {v === 'stats' ? 'Stats Table' : 'Scoring'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Drive preview */}
-                    <div className="rounded-md p-3" style={{ background: css.cockpitDeep, border: `1px solid ${css.cockpitBorder}` }}>
-                      <p className="font-display font-bold text-xs tracking-wider mb-2" style={{ color: css.fgDim, letterSpacing: '0.1em' }}>
-                        DRIVE PREVIEW
-                      </p>
-                      {matches.filter(m => m.sport === sport && m.status === 'live').slice(0, 1).map(match => (
-                        <div key={match.id}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-display font-bold text-xs" style={{ color: css.foreground }}>
-                              {match.home.abbr} {match.homeScore} – {match.awayScore} {match.away.abbr}
-                            </span>
-                            <StatusBadge status="live" />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            {match.topPlayers.slice(0, 3).map((p, i) => (
-                              <div key={p.name} className="flex items-center gap-2">
-                                <span className="font-data text-xs w-4" style={{ color: i === 0 ? css.primary : css.fgDim }}>
-                                  {i + 1}
-                                </span>
-                                <TeamSwatch color={getTeamColor(p.team === match.home.abbr ? match.home.name : match.away.name)} size="sm" />
-                                <span className="font-body text-xs flex-1 truncate" style={{ color: i === 0 ? css.primary : css.fgMuted }}>
-                                  {p.name}
-                                </span>
-                                {stats.slice(0, 3).map(stat => (
-                                  <span key={stat} className="font-data text-xs" style={{ color: stat === sort ? css.primary : css.fgDim }}>
-                                    {p.stats[stat] ?? '—'}
-                                  </span>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      {matches.filter(m => m.sport === sport && m.status === 'live').length === 0 && (
-                        <p className="font-body text-xs" style={{ color: css.fgDim }}>No live matches</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+                )
+              })}
             </div>
           )
         })}
       </div>
 
-      {/* Bottom buttons */}
-      <div className="px-4 pb-4 flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 py-3 rounded-md font-display font-bold tracking-wide text-sm transition-all"
-          style={{ background: css.card, color: css.fgMuted, border: `1px solid ${css.cockpitBorder}` }}
-        >
-          BACK TO HOME
-        </button>
-        <button
-          onClick={onBack}
-          className="flex-1 py-3 rounded-md font-display font-bold tracking-wide text-sm transition-all"
-          style={{ background: css.primary, color: css.background }}
-        >
-          SAVE PREFERENCES
-        </button>
-      </div>
+      {/* Settings modal */}
+      {settingsSport && (
+        <SportsSettingsModal
+          sport={settingsSport}
+          enabledStats={enabledStats}
+          sortStats={sortStats}
+          showUpcoming={showUpcoming}
+          showLast24h={showLast24h}
+          onToggleStat={onToggleStat}
+          onSetSort={onSetSort}
+          onToggleShowUpcoming={setShowUpcoming}
+          onToggleShowLast24h={setShowLast24h}
+          onClose={() => setSettingsSport(null)}
+        />
+      )}
     </MobileShell>
   )
 }
 
-// ─── Stats Config Screen ──────────────────────────────────────────────────────
+// ─── Stats Screen ─────────────────────────────────────────────────────────────
 
-function StatsConfigScreen({
+function StatsScreen({
   matches, enabledStats, sortStats,
   onToggleStat, onSetSort,
   onNavigate,
@@ -1261,61 +1420,41 @@ function StatsConfigScreen({
       <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: css.cockpitBorder }}>
         <SlidersHorizontal size={18} color={css.primary} />
         <h1 className="font-display font-bold tracking-wide" style={{ color: css.foreground, letterSpacing: '0.08em' }}>
-          STATS CONFIG
+          STATS
         </h1>
       </div>
 
-      {/* Sport tabs */}
-      <div className="flex border-b" style={{ borderColor: css.cockpitBorder }}>
-        {sports.map(sport => (
-          <button
-            key={sport}
-            onClick={() => setActiveSport(sport)}
-            className="flex-1 py-2.5 font-display font-bold text-xs tracking-wide transition-all"
-            style={{
-              color: activeSport === sport ? css.primary : css.fgDim,
-              borderBottom: activeSport === sport ? `2px solid ${css.primary}` : '2px solid transparent',
-              background: 'transparent',
-            }}
-          >
-            {sport}
-          </button>
-        ))}
+      {/* Per-sport tabs: AFL | NRL | Cricket | Football | Basketball */}
+      <div className="flex border-b overflow-x-auto" style={{ borderColor: css.cockpitBorder }}>
+        {sports.map(sport => {
+          const config = SPORTS_CONFIG[sport]
+          return (
+            <button
+              key={sport}
+              onClick={() => setActiveSport(sport)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 font-display font-bold text-xs tracking-wide transition-all"
+              style={{
+                color: activeSport === sport ? css.primary : css.fgDim,
+                borderBottom: activeSport === sport ? `2px solid ${css.primary}` : '2px solid transparent',
+                background: 'transparent',
+              }}
+            >
+              <span style={{ fontSize: 13 }}>{config.icon}</span>
+              {sport}
+            </button>
+          )
+        })}
       </div>
 
       <div className="p-4 flex flex-col gap-4">
-        {/* Sort order */}
-        <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
-          <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
-            SORT ORDER
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {STATS_OPTIONS[activeSport].map(stat => (
-              <button
-                key={stat}
-                onClick={() => onSetSort(activeSport, stat)}
-                className="px-3 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
-                style={{
-                  background: sort === stat ? css.primary : css.cockpitSurface,
-                  color: sort === stat ? css.background : css.fgMuted,
-                  border: `1px solid ${sort === stat ? css.primary : css.cockpitBorder}`,
-                }}
-              >
-                {stat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Displayed stats */}
+        {/* Stat selection */}
         <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
           <div className="flex items-center justify-between mb-3">
             <p className="font-display font-bold text-xs tracking-wider" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
-              DISPLAYED STATS
+              STAT SELECTION
             </p>
             <span className="font-data text-xs" style={{ color: css.fgDim }}>
-              {stats.length} / 5 &nbsp;
-              <span style={{ color: css.cockpitMuted }}>min 3</span>
+              {stats.length}/5 &nbsp;<span style={{ color: css.cockpitMuted }}>min 3</span>
             </span>
           </div>
           <div className="flex flex-col gap-2">
@@ -1323,14 +1462,18 @@ function StatsConfigScreen({
               const active = stats.includes(stat)
               const atMax = stats.length >= 5
               const atMin = stats.length <= 3
+              const disabled = (active && atMin) || (!active && atMax)
               return (
-                <div key={stat} className="flex items-center justify-between py-1">
-                  <span className="font-body text-sm" style={{ color: active ? css.foreground : css.fgDim }}>{stat}</span>
+                <div key={stat} className="flex items-center justify-between py-0.5">
+                  <div className="flex items-center gap-2">
+                    {active && <Check size={12} color={css.primary} />}
+                    {!active && <div style={{ width: 12 }} />}
+                    <span className="font-body text-sm" style={{ color: active ? css.foreground : css.fgDim }}>{stat}</span>
+                  </div>
                   <Toggle
                     checked={active}
                     onChange={() => {
-                      if (active && atMin) return
-                      if (!active && atMax) return
+                      if (disabled) return
                       onToggleStat(activeSport, stat)
                     }}
                   />
@@ -1340,13 +1483,40 @@ function StatsConfigScreen({
           </div>
         </div>
 
-        {/* In-car preview */}
+        {/* Sort order */}
+        <div className="rounded-md p-4" style={{ background: css.card, border: `1px solid ${css.cockpitBorder}` }}>
+          <p className="font-display font-bold text-xs tracking-wider mb-3" style={{ color: css.fgDim, letterSpacing: '0.12em' }}>
+            SORT ORDER
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {stats.map(stat => (
+              <button
+                key={stat}
+                onClick={() => onSetSort(activeSport, stat)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-display font-bold tracking-wide transition-all"
+                style={{
+                  background: sort === stat ? css.primary : css.cockpitSurface,
+                  color: sort === stat ? css.background : css.fgMuted,
+                  border: `1px solid ${sort === stat ? css.primary : css.cockpitBorder}`,
+                }}
+              >
+                {sort === stat && <Check size={10} />}
+                {stat}
+              </button>
+            ))}
+          </div>
+          <p className="font-body text-xs mt-2" style={{ color: css.fgDim }}>
+            Players sorted by selected stat in drive mode
+          </p>
+        </div>
+
+        {/* Live match preview */}
         <div className="rounded-md overflow-hidden" style={{ border: `1px solid ${css.cockpitBorder}` }}>
-          <div className="px-3 py-2 flex items-center justify-between" style={{ background: css.cockpitDeep }}>
+          <div className="px-3 py-2 flex items-center justify-between border-b" style={{ background: css.cockpitDeep, borderColor: css.cockpitBorder }}>
             <div className="flex items-center gap-2">
-              <Car size={14} color={css.primary} />
+              <Target size={13} color={css.primary} />
               <span className="font-display font-bold text-xs tracking-wider" style={{ color: css.primary, letterSpacing: '0.1em' }}>
-                IN-CAR PREVIEW
+                LIVE PREVIEW
               </span>
             </div>
             <StatusBadge status={liveMatch ? 'live' : 'upcoming'} />
@@ -1406,8 +1576,10 @@ function StatsConfigScreen({
               </div>
             </div>
           ) : (
-            <div className="p-4 text-center" style={{ background: css.cockpitDeep }}>
+            <div className="p-6 text-center" style={{ background: css.cockpitDeep }}>
+              <Target size={24} color={css.cockpitMuted} className="mx-auto mb-2" />
               <p className="font-body text-sm" style={{ color: css.fgDim }}>No live {activeSport} matches</p>
+              <p className="font-body text-xs mt-1" style={{ color: css.cockpitMuted }}>Preview will appear when a match is live</p>
             </div>
           )}
         </div>
@@ -2213,28 +2385,33 @@ export default function App() {
           />
         )
 
+      case 'scores':
+        return (
+          <ScoresScreen
+            matches={matches}
+            onNavigate={navigate}
+          />
+        )
+
       case 'sports':
         return (
-          <SportsSelectionScreen
+          <SportsScreen
             matches={matches}
             enabledLeagues={enabledLeagues}
             selectedTeams={selectedTeams}
             enabledStats={enabledStats}
             sortStats={sortStats}
-            defaultView={defaultView}
             onToggleLeague={handleToggleLeague}
             onToggleTeam={handleToggleTeam}
             onToggleStat={handleToggleStat}
             onSetSort={handleSetSort}
-            onSetDefaultView={handleSetDefaultView}
             onNavigate={navigate}
-            onBack={() => setCurrentScreen('home')}
           />
         )
 
       case 'stats':
         return (
-          <StatsConfigScreen
+          <StatsScreen
             matches={matches}
             enabledStats={enabledStats}
             sortStats={sortStats}
