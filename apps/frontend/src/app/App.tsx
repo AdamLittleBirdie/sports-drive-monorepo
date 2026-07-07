@@ -2253,49 +2253,33 @@ export default function App() {
     setMatchesLoading(true)
     setMatchesError(null)
 
-    const fetchAfl = fetch(`${API_BASE_URL}/api/matches`)
+    fetch(`${API_BASE_URL}/api/all-matches`)
       .then(res => {
-        if (!res.ok) throw new Error(`AFL API error: ${res.status}`)
-        return res.json() as Promise<{ data: ApiMatch[] } | ApiMatch[]>
+        if (!res.ok) throw new Error(`All-matches API error: ${res.status}`)
+        return res.json() as Promise<{ data: (ApiMatch | ApiBasketballMatch)[] } | (ApiMatch | ApiBasketballMatch)[]>
       })
       .then(payload => {
-        const data: ApiMatch[] = Array.isArray(payload) ? payload : (payload as { data: ApiMatch[] }).data ?? []
-        return data.map(transformApiMatch)
+        const raw = Array.isArray(payload) ? payload : (payload as { data: (ApiMatch | ApiBasketballMatch)[] }).data ?? []
+        const allMatches: Match[] = raw.map(m => {
+          const sport = (m as ApiMatch & { sport?: string }).sport
+          if (sport === 'Basketball') {
+            return transformApiBasketballMatch(m as ApiBasketballMatch)
+          }
+          return transformApiMatch(m as ApiMatch)
+        })
+        if (!cancelled) {
+          setMatches(allMatches)
+          setMatchesLoading(false)
+        }
       })
       .catch(err => {
-        console.warn('Failed to fetch AFL matches from API, using mock data:', err)
-        return MOCK_MATCHES.filter(m => m.sport !== 'Basketball')
+        if (!cancelled) {
+          console.warn('Failed to fetch all matches:', err)
+          setMatchesError(err.message)
+          setMatches(MOCK_MATCHES)
+          setMatchesLoading(false)
+        }
       })
-
-    const fetchBasketball = fetch(`${API_BASE_URL}/api/basketball/matches`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Basketball API error: ${res.status}`)
-        return res.json() as Promise<{ statusCode: number; data: ApiBasketballMatch[] } | ApiBasketballMatch[]>
-      })
-      .then(payload => {
-        const data: ApiBasketballMatch[] = Array.isArray(payload)
-          ? payload
-          : (payload as { statusCode: number; data: ApiBasketballMatch[] }).data ?? []
-        return data.map(transformApiBasketballMatch)
-      })
-      .catch(err => {
-        console.warn('Failed to fetch Basketball matches from API:', err)
-        return [] as Match[]
-      })
-
-    Promise.all([fetchAfl, fetchBasketball]).then(([aflMatches, basketballMatches]) => {
-      if (!cancelled) {
-        setMatches([...aflMatches, ...basketballMatches])
-        setMatchesLoading(false)
-      }
-    }).catch(err => {
-      if (!cancelled) {
-        console.warn('Failed to fetch matches:', err)
-        setMatchesError(err.message)
-        setMatches(MOCK_MATCHES)
-        setMatchesLoading(false)
-      }
-    })
 
     return () => { cancelled = true }
   }, [])
