@@ -1,34 +1,50 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Figma semantic tokens ───────────────────────────────────────────────── */
+  --background: #070a0f;
+  --foreground: #f0f2f5;
+  --card: #0e1319;
+  --primary: #f5a623;
+  --accent: #00e57a;
+  --radius: 0.375rem;
+
+  /* ── Cockpit background layers ───────────────────────────────────────────── */
   --color-cockpit: #070a0f;
   --color-cockpit-mid: #0d1117;
   --color-cockpit-surface: #111820;
   --color-cockpit-border: #1e2a38;
   --color-cockpit-muted: #2a3a4d;
 
+  /* ── Signal amber ────────────────────────────────────────────────────────── */
   --color-amber: #f5a623;
   --color-amber-dim: #c47d0e;
   --color-amber-glow: rgba(245, 166, 35, 0.15);
 
+  /* ── Electric green / live ───────────────────────────────────────────────── */
   --color-green-live: #00e57a;
   --color-green-live-dim: #00b85f;
   --color-green-glow: rgba(0, 229, 122, 0.15);
 
+  /* ── Foreground ──────────────────────────────────────────────────────────── */
   --color-fg: #f0f2f5;
   --color-fg-muted: #8a9bb0;
   --color-fg-dim: #4a5a6e;
 
+  /* ── Semantic ────────────────────────────────────────────────────────────── */
   --color-red-score: #ff4d4d;
   --color-blue-away: #4d9fff;
 
+  /* ── Typography ──────────────────────────────────────────────────────────── */
   --font-display: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --font-data: 'DM Mono', monospace;
 
+  /* ── Border radius ───────────────────────────────────────────────────────── */
   --radius-tight: 0.375rem;
   --radius-pill: 9999px;
 
+  /* ── Safe area ───────────────────────────────────────────────────────────── */
   --spacing-safe-top: env(safe-area-inset-top, 0px);
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
