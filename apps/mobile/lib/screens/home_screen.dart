@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        match.league,
+                        match.sport,
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       const SizedBox(height: 8),
