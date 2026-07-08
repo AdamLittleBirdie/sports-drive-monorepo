@@ -12,7 +12,8 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        final List<dynamic> data = jsonResponse['data'] as List<dynamic>;
         return data.map((json) => Match.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load matches: ${response.statusCode}');
