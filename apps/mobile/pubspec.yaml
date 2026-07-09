@@ -1,5 +1,5 @@
 name: sports_drive
-description: Sports Drive mobile app
+description: ScoreDrive — in-car sports dashboard
 version: 1.0.0+1
 
 environment:
@@ -9,7 +9,13 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.0
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.3.1
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter:
+  uses-material-design: true
