@@ -138,7 +138,7 @@ ThemeData buildCockpitTheme() {
         letterSpacing: AppLetterSpacing.wide,
       ),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       color: AppColors.cockpitSurface,
       elevation: 0,
       shape: RoundedRectangleBorder(
