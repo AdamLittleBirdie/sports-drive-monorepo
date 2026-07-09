@@ -39,14 +39,16 @@ class Match {
     this.periodTime,
   });
 
-  /// Extracts a total score from a value that may be an [int] or an AFL score
+  /// Extracts a total score from a value that may be a [num] or an AFL score
   /// object with [goals] and [behinds] fields (total = goals * 6 + behinds).
+  ///
+  /// Fix: handles both [int] and [double] since Dart's JSON decoder may return
+  /// either depending on the value (e.g. 14 vs 14.0). Using [num] covers both.
   static int _parseScore(dynamic value) {
     if (value == null) return 0;
-    if (value is int) return value;
+    // Handle both int and double — Dart's JSON decoder may return either.
+    if (value is num) return value.toInt();
     if (value is Map) {
-      final goals = (value['goals'] as num?)?.toInt() ?? 0;
-      final behinds = (value['behinds'] as num?)?.toInt() ?? 0;
       // Fall back to a generic 'points' or 'total' field if present.
       if (value.containsKey('points')) {
         return (value['points'] as num?)?.toInt() ?? 0;
@@ -54,9 +56,35 @@ class Match {
       if (value.containsKey('total')) {
         return (value['total'] as num?)?.toInt() ?? 0;
       }
+      final goals = (value['goals'] as num?)?.toInt() ?? 0;
+      final behinds = (value['behinds'] as num?)?.toInt() ?? 0;
       return goals * 6 + behinds;
     }
     return 0;
+  }
+
+  /// Normalises an API status string to one of the three canonical values.
+  ///
+  /// The API should return 'scheduled', 'in_progress', or 'completed', but
+  /// guard against alternate spellings (e.g. 'live', 'finished', 'ft') so
+  /// status badges always render correctly.
+  static String _normaliseStatus(String? raw) {
+    switch ((raw ?? '').toLowerCase()) {
+      case 'in_progress':
+      case 'live':
+      case 'inprogress':
+        return 'in_progress';
+      case 'completed':
+      case 'finished':
+      case 'ft':
+      case 'final':
+        return 'completed';
+      case 'scheduled':
+      case 'upcoming':
+      case 'pre':
+      default:
+        return 'scheduled';
+    }
   }
 
   factory Match.fromJson(Map<String, dynamic> json) {
@@ -96,10 +124,28 @@ class Match {
     final String id = json['id']?.toString() ?? '';
 
     // date field is 'date' or 'game_date' (ISO 8601 string).
+    //
+    // Fix: The API returns UTC timestamps. If the string has no timezone
+    // suffix (no 'Z' and no '+'/'-' offset), append 'Z' so Dart parses it
+    // as UTC rather than local time — ensuring .toLocal() in timeDisplay
+    // converts to the user's actual local timezone correctly.
     final String? dateStr =
         (json['date'] ?? json['game_date']) as String?;
-    final DateTime? matchDate =
-        dateStr != null ? DateTime.tryParse(dateStr) : null;
+    DateTime? matchDate;
+    if (dateStr != null) {
+      String normalized = dateStr.trim();
+      // Detect whether a timezone offset is already present.
+      final bool hasOffset = normalized.endsWith('Z') ||
+          normalized.contains('+') ||
+          (normalized.length > 6 &&
+              normalized[normalized.length - 3] == ':' &&
+              (normalized[normalized.length - 6] == '+' ||
+                  normalized[normalized.length - 6] == '-'));
+      if (!hasOffset && normalized.isNotEmpty) {
+        normalized = '${normalized}Z';
+      }
+      matchDate = DateTime.tryParse(normalized);
+    }
 
     // Basketball-specific period info
     final int? periodNum = (json['period'] as num?)?.toInt();
@@ -129,7 +175,7 @@ class Match {
       sport: sport,
       league: league,
       matchDate: matchDate,
-      status: json['status'] as String? ?? 'scheduled',
+      status: _normaliseStatus(json['status'] as String?),
       round: json['round'] as String? ?? '',
       period: period,
       periodTime: periodTime,
