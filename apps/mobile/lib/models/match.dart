@@ -39,11 +39,11 @@ class Match {
     this.periodTime,
   });
 
-  /// Extracts a total score from a value that may be an [int] or an AFL score
-  /// object with [goals] and [behinds] fields (total = goals * 6 + behinds).
+  /// Extracts a total score from a value that may be an [int], [double], or an
+  /// AFL score object with [goals] and [behinds] fields (total = goals * 6 + behinds).
   static int _parseScore(dynamic value) {
     if (value == null) return 0;
-    if (value is int) return value;
+    if (value is num) return value.toInt();
     if (value is Map) {
       final goals = (value['goals'] as num?)?.toInt() ?? 0;
       final behinds = (value['behinds'] as num?)?.toInt() ?? 0;
@@ -57,6 +57,30 @@ class Match {
       return goals * 6 + behinds;
     }
     return 0;
+  }
+
+  /// Appends 'Z' to bare ISO timestamps (no timezone suffix) so that
+  /// [DateTime.tryParse] treats them as UTC instead of local time.
+  static String _ensureUtc(String dateStr) {
+    final trimmed = dateStr.trim();
+    // Already has a timezone indicator: ends with Z or +HH:MM / -HH:MM
+    if (trimmed.endsWith('Z')) return trimmed;
+    final offsetPattern = RegExp(r'[+\-]\d{2}:\d{2}$');
+    if (offsetPattern.hasMatch(trimmed)) return trimmed;
+    return '${trimmed}Z';
+  }
+
+  /// Maps alternate API status spellings to the canonical values used
+  /// throughout the app ('scheduled', 'in_progress', 'completed').
+  static String _normaliseStatus(String raw) {
+    final s = raw.toLowerCase().replaceAll(RegExp(r'[^a-z_]'), '');
+    if (s == 'in_progress' || s == 'inprogress' || s == 'live' || s == 'playing') {
+      return 'in_progress';
+    }
+    if (s == 'completed' || s == 'finished' || s == 'ft' || s == 'final' || s == 'ended') {
+      return 'completed';
+    }
+    return 'scheduled';
   }
 
   factory Match.fromJson(Map<String, dynamic> json) {
@@ -96,10 +120,14 @@ class Match {
     final String id = json['id']?.toString() ?? '';
 
     // date field is 'date' or 'game_date' (ISO 8601 string).
+    // Append 'Z' if the timestamp has no timezone suffix so it is parsed as
+    // UTC rather than local time; .toLocal() in timeDisplay then converts it
+    // correctly to the device timezone.
     final String? dateStr =
         (json['date'] ?? json['game_date']) as String?;
+    final String? dateStrUtc = dateStr != null ? _ensureUtc(dateStr) : null;
     final DateTime? matchDate =
-        dateStr != null ? DateTime.tryParse(dateStr) : null;
+        dateStrUtc != null ? DateTime.tryParse(dateStrUtc) : null;
 
     // Basketball-specific period info
     final int? periodNum = (json['period'] as num?)?.toInt();
@@ -129,7 +157,7 @@ class Match {
       sport: sport,
       league: league,
       matchDate: matchDate,
-      status: json['status'] as String? ?? 'scheduled',
+      status: _normaliseStatus(json['status'] as String? ?? 'scheduled'),
       round: json['round'] as String? ?? '',
       period: period,
       periodTime: periodTime,
