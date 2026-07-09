@@ -330,20 +330,31 @@ interface ApiBasketballMatch {
 
 // ─── API Transform ────────────────────────────────────────────────────────────
 
-function mapApiStatusToMatchStatus(status: ApiMatch['status']): MatchStatus {
-  switch (status) {
-    case 'in_progress': return 'live'
-    case 'scheduled': return 'upcoming'
-    case 'completed': return 'ft'
-  }
+/** Append 'Z' to bare ISO timestamps so they are parsed as UTC, not local time. */
+function ensureUtc(dateStr: string): string {
+  return /[Z+\-]\d*$/.test(dateStr.trim()) ? dateStr : dateStr + 'Z'
+}
+
+/** Parse a score value that may be null, int, or float (Dart JSON decoder quirk). */
+function parseScore(value: number | null | undefined): number {
+  if (value == null) return 0
+  return Math.round(value)
+}
+
+/** Normalise alternate API status spellings to canonical MatchStatus values. */
+function normalizeStatus(raw: string): MatchStatus {
+  const s = raw.toLowerCase().replace(/[^a-z_]/g, '')
+  if (s === 'in_progress' || s === 'inprogress' || s === 'live' || s === 'playing') return 'live'
+  if (s === 'completed' || s === 'finished' || s === 'ft' || s === 'final' || s === 'ended') return 'ft'
+  return 'upcoming'
 }
 
 function transformApiMatch(m: ApiMatch): Match {
-  const status = mapApiStatusToMatchStatus(m.status)
+  const status = normalizeStatus(m.status)
   const homeColor = getTeamColor(m.home_team.name)
   const awayColor = getTeamColor(m.away_team.name)
 
-  const date = new Date(m.date)
+  const date = new Date(ensureUtc(m.date))
   const now = new Date()
   const isToday = date.toDateString() === now.toDateString()
   const isTomorrow = date.toDateString() === new Date(now.getTime() + 86400000).toDateString()
@@ -369,8 +380,8 @@ function transformApiMatch(m: ApiMatch): Match {
       abbr: m.away_team.abbreviation,
       color: awayColor,
     },
-    homeScore: m.home_score ?? 0,
-    awayScore: m.away_score ?? 0,
+    homeScore: parseScore(m.home_score),
+    awayScore: parseScore(m.away_score),
     time: status === 'live' ? m.round : '',
     status,
     period: status === 'live' ? m.round : undefined,
@@ -381,11 +392,11 @@ function transformApiMatch(m: ApiMatch): Match {
 }
 
 function transformApiBasketballMatch(m: ApiBasketballMatch): Match {
-  const status = mapApiStatusToMatchStatus(m.status)
+  const status = normalizeStatus(m.status)
   const homeColor = getTeamColor(m.home_team.name)
   const awayColor = getTeamColor(m.away_team.name)
 
-  const date = new Date(m.game_date)
+  const date = new Date(ensureUtc(m.game_date))
   const now = new Date()
   const isToday = date.toDateString() === now.toDateString()
   const isTomorrow = date.toDateString() === new Date(now.getTime() + 86400000).toDateString()
@@ -430,8 +441,8 @@ function transformApiBasketballMatch(m: ApiBasketballMatch): Match {
       abbr: awayAbbr,
       color: awayColor,
     },
-    homeScore: m.home_score ?? 0,
-    awayScore: m.away_score ?? 0,
+    homeScore: parseScore(m.home_score),
+    awayScore: parseScore(m.away_score),
     time: timeDisplay,
     status,
     period,
@@ -631,7 +642,12 @@ function cn(...classes: (string | undefined | null | false)[]): string {
 }
 
 function getTeamColor(name: string): string {
-  return TEAM_COLORS[name] || '#2a3a4d'
+  // Exact match first
+  if (TEAM_COLORS[name]) return TEAM_COLORS[name]
+  // Case-insensitive fallback
+  const lower = name.toLowerCase()
+  const key = Object.keys(TEAM_COLORS).find(k => k.toLowerCase() === lower)
+  return key ? TEAM_COLORS[key] : '#2a3a4d'
 }
 
 function formatCountdown(startTime: string): string {

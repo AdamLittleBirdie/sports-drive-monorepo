@@ -176,8 +176,18 @@ const Map<String, Color> kTeamColors = {
 };
 
 /// Returns the team's brand color, or a neutral cockpit fallback.
+/// Tries an exact match first, then falls back to a case-insensitive scan
+/// so that API responses with different casing still resolve correctly.
 Color getTeamColor(String teamName) {
-  return kTeamColors[teamName] ?? _fallback;
+  // Exact match
+  final exact = kTeamColors[teamName];
+  if (exact != null) return exact;
+  // Case-insensitive fallback
+  final lower = teamName.toLowerCase();
+  for (final entry in kTeamColors.entries) {
+    if (entry.key.toLowerCase() == lower) return entry.value;
+  }
+  return _fallback;
 }
 
 /// Returns a readable text color (white or near-black) for a given team color.
