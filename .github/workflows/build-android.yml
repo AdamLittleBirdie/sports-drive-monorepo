@@ -42,6 +42,35 @@ jobs:
           curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
             https://github.com/gradle/gradle/raw/v8.3.0/gradle/wrapper/gradle-wrapper.jar
 
+      - name: Generate signing keystore
+        working-directory: apps/mobile
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          keytool -genkey -v \
+            -keystore release.jks \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -alias scoredrive-key \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEYSTORE_PASSWORD" \
+            -dname "CN=Adam LittleBirdie,O=ScoreDrive,L=Australia,C=AU"
+          echo "Keystore generated successfully"
+
+      - name: Create key.properties
+        working-directory: apps/mobile/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          cat > key.properties <<EOF
+          storeFile=../release.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=scoredrive-key
+          keyPassword=$KEYSTORE_PASSWORD
+          EOF
+          echo "key.properties created"
+
       - name: Get Flutter dependencies
         working-directory: apps/mobile
         run: flutter pub get
@@ -55,7 +84,7 @@ jobs:
           echo "Updated pubspec.yaml to version: $VERSION+$BUILD_NUMBER"
           cat pubspec.yaml | grep version
       
-      - name: Build APK
+      - name: Build signed release APK
         working-directory: apps/mobile
         run: flutter build apk --release
 
@@ -65,6 +94,15 @@ jobs:
           name: android-apk
           path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
 
+      - name: Upload to Google Play internal testing track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.sportsdrive.app
+          releaseFiles: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          track: internal
+          status: completed
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -73,9 +111,12 @@ jobs:
           body: |
             ## Sports Drive Mobile App v${{ steps.version.outputs.version }}
             
-            Android APK ready for testing.
+            This release has been automatically uploaded to the **Google Play internal testing track**.
+            Testers will receive the update automatically via the Google Play app.
             
-            **Installation:**
+            A signed APK is also attached below for manual installation if needed.
+            
+            **Manual Installation (fallback):**
             1. Download the APK from the assets below
             2. Enable "Unknown Sources" on your Android device
             3. Install the APK
