@@ -6,6 +6,27 @@ on:
       - 'v*'
 
 jobs:
+  generate-keystore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate signing keystore
+        run: |
+          keytool -genkey -v \
+            -keystore release.jks \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -alias scoredrive-key \
+            -storepass "MySecurePass123!" \
+            -keypass "MySecurePass123!" \
+            -dname "CN=Adam LittleBirdie,O=ScoreDrive,L=Australia,C=AU"
+      
+      - name: Upload keystore artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keystore
+          path: release.jks 
+
   build:
     runs-on: ubuntu-latest
     permissions:
@@ -42,22 +63,7 @@ jobs:
           curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
             https://github.com/gradle/gradle/raw/v8.3.0/gradle/wrapper/gradle-wrapper.jar
 
-      - name: Generate signing keystore
-        working-directory: apps/mobile/android
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          keytool -genkey -v \
-            -keystore release.jks \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -alias scoredrive-key \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -keypass "$KEYSTORE_PASSWORD" \
-            -dname "CN=Adam LittleBirdie,O=ScoreDrive,L=Australia,C=AU"
-          echo "Keystore generated successfully"
-
+      
       - name: Create key.properties
         working-directory: apps/mobile/android
         env:
@@ -65,9 +71,9 @@ jobs:
         run: |
           cat > key.properties <<EOF
           storeFile=../release.jks
-          storePassword=$KEYSTORE_PASSWORD
+          storePassword=MySecurePass123!
           keyAlias=scoredrive-key
-          keyPassword=$KEYSTORE_PASSWORD
+          keyPassword=MySecurePass123!
           EOF
           echo "key.properties created"
 
