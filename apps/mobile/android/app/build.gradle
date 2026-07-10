@@ -60,13 +60,13 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId "com.sportsdrive.app"
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
-    }
+defaultConfig {
+    applicationId "com.sportsdrive.app"
+    minSdkVersion flutter.minSdkVersion
+    targetSdkVersion 35
+    versionCode flutterVersionCode.toInteger()
+    versionName flutterVersionName
+}
 
     buildTypes {
         release {
