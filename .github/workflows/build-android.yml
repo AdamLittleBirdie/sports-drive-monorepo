@@ -84,29 +84,29 @@ jobs:
           echo "Updated pubspec.yaml to version: $VERSION+$BUILD_NUMBER"
           cat pubspec.yaml | grep version
       
-      - name: Build signed release APK
+      - name: Build signed release App Bundle
         working-directory: apps/mobile
-        run: flutter build apk --release
+        run: flutter build appbundle --release
 
-      - name: Upload APK artifact
+      - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          name: android-aab
+          path: apps/mobile/build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload to Google Play internal testing track
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.sportsdrive.app
-          releaseFiles: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          releaseFiles: apps/mobile/build/app/outputs/bundle/release/app-release.aab
           track: internal
           status: completed
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          files: apps/mobile/build/app/outputs/bundle/release/app-release.aab
           tag_name: ${{ github.ref }}
           body: |
             ## Sports Drive Mobile App v${{ steps.version.outputs.version }}
@@ -114,7 +114,7 @@ jobs:
             This release has been automatically uploaded to the **Google Play internal testing track**.
             Testers will receive the update automatically via the Google Play app.
             
-            A signed APK is also attached below for manual installation if needed.
+            A signed App Bundle (.aab) is also attached below for reference.
             
             **Manual Installation (fallback):**
             1. Download the APK from the assets below
