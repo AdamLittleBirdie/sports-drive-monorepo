@@ -64,7 +64,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cat > key.properties <<EOF
-          storeFile=./release.jks
+          storeFile=release.jks
           storePassword=$KEYSTORE_PASSWORD
           keyAlias=scoredrive-key
           keyPassword=$KEYSTORE_PASSWORD
