@@ -6,42 +6,14 @@ on:
       - 'v*'
 
 jobs:
-  generate-keystore:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate signing keystore
-        run: |
-          keytool -genkey -v \
-            -keystore release.jks \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -alias scoredrive-key \
-            -storepass "MySecurePass123!" \
-            -keypass "MySecurePass123!" \
-            -dname "CN=Adam LittleBirdie,O=ScoreDrive,L=Australia,C=AU"
-      
-      - name: Upload keystore artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: keystore
-          path: release.jks 
-
   build:
     runs-on: ubuntu-latest
-    needs: generate-keystore
     permissions:
       contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Download keystore artifact
-        uses: actions/download-artifact@v4
-        with:
-            name: keystore
-            path: apps/mobile/android
 
       - name: Extract version from tag
         id: version
