@@ -4,48 +4,39 @@
  * Auto-generated from apps/frontend/src/styles/design-tokens.ts
  * Synced from the Figma Make repo via .github/workflows/figma-sync.yml
  *
+ * Generated on 2026-07-14T04:41:17.820Z
  * These variables mirror the TypeScript tokens so that plain CSS (e.g. globals.css,
  * third-party components) can consume the same values without importing JS.
  */
 
 :root {
   /* ── Colors: backgrounds ─────────────────────────────────────────────────── */
-  --color-cockpit:         #070a0f;
-  --color-cockpit-mid:     #0d1117;
+  --color-cockpit: #070a0f;
+  --color-cockpit-mid: #0d1117;
   --color-cockpit-surface: #111820;
-  --color-cockpit-deep:    #030507;
-  --color-cockpit-border:  #1e2a38;
-  --color-cockpit-muted:   #2a3a4d;
-
-  /* ── Colors: amber accent ────────────────────────────────────────────────── */
-  --color-amber:                  #f5a623;
-  --color-amber-dim:              #c47d0e;
-  --color-amber-glow:             rgba(245, 166, 35, 0.15);
-  --color-amber-glow-subtle:      rgba(245, 166, 35, 0.12);
-  --color-amber-glow-border:      rgba(245, 166, 35, 0.25);
+  --color-cockpit-deep: #030507;
+  --color-cockpit-border: #1e2a38;
+  --color-cockpit-muted: #2a3a4d;
+  --color-amber: #f5a623;
+  --color-amber-dim: #c47d0e;
+  --color-amber-glow: rgba(245, 166, 35, 0.15);
+  --color-amber-glow-subtle: rgba(245, 166, 35, 0.12);
+  --color-amber-glow-border: rgba(245, 166, 35, 0.25);
   --color-amber-glow-border-strong: rgba(245, 166, 35, 0.3);
-  --color-amber-glow-bg:          rgba(245, 166, 35, 0.1);
-  --color-amber-glow-bg-faint:    rgba(245, 166, 35, 0.05);
-
-  /* ── Colors: green / live ────────────────────────────────────────────────── */
-  --color-green:              #00e57a;
-  --color-green-dim:          #00b85f;
-  --color-green-glow:         rgba(0, 229, 122, 0.15);
-  --color-green-glow-subtle:  rgba(0, 229, 122, 0.12);
-  --color-green-glow-border:  rgba(0, 229, 122, 0.3);
-
-  /* ── Colors: foreground ──────────────────────────────────────────────────── */
-  --color-fg:       #f0f2f5;
+  --color-amber-glow-bg: rgba(245, 166, 35, 0.1);
+  --color-amber-glow-bg-faint: rgba(245, 166, 35, 0.05);
+  --color-green: #00e57a;
+  --color-green-dim: #00b85f;
+  --color-green-glow: rgba(0, 229, 122, 0.15);
+  --color-green-glow-subtle: rgba(0, 229, 122, 0.12);
+  --color-green-glow-border: rgba(0, 229, 122, 0.3);
+  --color-fg: #f0f2f5;
   --color-fg-muted: #8a9bb0;
-  --color-fg-dim:   #4a5a6e;
-
-  /* ── Colors: semantic ────────────────────────────────────────────────────── */
+  --color-fg-dim: #4a5a6e;
   --color-red-score: #ff4d4d;
-  --color-red-glow:  rgba(255, 77, 77, 0.2);
+  --color-red-glow: rgba(255, 77, 77, 0.2);
   --color-blue-away: #4d9fff;
-
-  /* ── Colors: neutral badge ───────────────────────────────────────────────── */
-  --color-neutral-badge-bg:     rgba(240, 242, 245, 0.08);
+  --color-neutral-badge-bg: rgba(240, 242, 245, 0.08);
   --color-neutral-badge-border: rgba(240, 242, 245, 0.12);
 
   /* ── Fonts ───────────────────────────────────────────────────────────────── */
@@ -54,37 +45,37 @@
   --font-data:    'DM Mono', monospace;
 
   /* ── Spacing ─────────────────────────────────────────────────────────────── */
-  --spacing-xs:   0.25rem;
-  --spacing-sm:   0.5rem;
-  --spacing-md:   0.75rem;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
   --spacing-base: 1rem;
-  --spacing-lg:   1.25rem;
-  --spacing-xl:   1.5rem;
-  --spacing-2xl:  2rem;
-  --spacing-3xl:  3rem;
+  --spacing-lg: 1.25rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+  --spacing-3xl: 3rem;
 
   /* ── Border radius ───────────────────────────────────────────────────────── */
   --radius-tight: 0.375rem;
-  --radius-pill:  9999px;
+  --radius-pill: 9999px;
 
   /* ── Font sizes ──────────────────────────────────────────────────────────── */
-  --font-size-2xs:  0.625rem;
-  --font-size-xs:   0.75rem;
-  --font-size-sm:   0.875rem;
+  --font-size-2xs: 0.625rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
-  --font-size-lg:   1.125rem;
-  --font-size-xl:   1.25rem;
-  --font-size-2xl:  1.5rem;
-  --font-size-3xl:  1.875rem;
-  --font-size-4xl:  2.25rem;
-  --font-size-5xl:  3rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
   --font-size-hero: 3.5rem;
 
   /* ── Letter spacing ──────────────────────────────────────────────────────── */
-  --letter-spacing-tight:  0.05em;
-  --letter-spacing-base:   0.08em;
-  --letter-spacing-wide:   0.1em;
-  --letter-spacing-wider:  0.12em;
+  --letter-spacing-tight: 0.05em;
+  --letter-spacing-base: 0.08em;
+  --letter-spacing-wide: 0.1em;
+  --letter-spacing-wider: 0.12em;
   --letter-spacing-widest: 0.15em;
-  --letter-spacing-ultra:  0.3em;
+  --letter-spacing-ultra: 0.3em;
 }
